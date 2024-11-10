@@ -19,7 +19,8 @@ def render(scene_class, render_all_sections, preview):
 
 def dev_render(fpath, scene_class, preview=True, render_all_sections=False):
     
-    update_config_for_dev(fpath, scene_class.video_orientation)
+    update_config_for_dev(fpath, scene_class.video_orientation,
+                          config_aux=scene_class.CONFIG)
     
     render(scene_class, render_all_sections, preview)
 
@@ -35,7 +36,8 @@ def prod_render(fpath, class_name, preview=False, render_all_sections=True):
         quality='prod',
         orientation=scene_class.video_orientation,
         media_subdir=media_subdir,
-        save_sections=True
+        save_sections=True,
+        config_aux=scene_class.CONFIG
     )
     
     render(scene_class, render_all_sections, preview)

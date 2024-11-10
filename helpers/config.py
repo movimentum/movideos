@@ -25,7 +25,8 @@ def update_config_for_scene(
         quality='prod',
         orientation='landscape',
         media_subdir=None,
-        save_sections=True
+        save_sections=True,
+        config_aux=None,
     ):
     
     # Сохранение секций
@@ -57,18 +58,22 @@ def update_config_for_scene(
     config.frame_height = fh
     config.frame_width = fw
     config.frame_rate = fps
+    
+    if config_aux:
+        config.update(config_aux)
 
 
 def get_media_dir_for_file(fpath):
     return dirname(relpath(fpath, sys.path[-1]))
 
 
-def update_config_for_dev(module_path, orientation):
+def update_config_for_dev(module_path, orientation, config_aux=None):
     media_subdir = get_media_dir_for_file(module_path)
     
     update_config_for_scene(
         quality='dev',
         orientation=orientation,
         media_subdir=media_subdir,
-        save_sections=False
+        save_sections=False,
+        config_aux=config_aux
     )
