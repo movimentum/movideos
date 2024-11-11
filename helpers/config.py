@@ -5,14 +5,14 @@
 # 
 
 #%% Импорт
-from os.path import join, dirname, relpath
-import sys
+import os
 
 from manim import config
 
 
 #%% Константы
-media_root_dir = join(sys.path[-1], 'media')
+proj_dir = os.environ['PYTHONPATH'].split(os.pathsep)[-1]
+media_root_dir = os.path.join(proj_dir, 'media')
 
 video_settings = dict(
     prod = (3840, 2160, 60),
@@ -36,7 +36,7 @@ def update_config_for_scene(
     config.media_dir = (
         media_root_dir
         if not media_subdir else 
-        join(media_root_dir, media_subdir)
+        os.path.join(media_root_dir, media_subdir)
     )
     
     # Настройки кадра
@@ -64,7 +64,7 @@ def update_config_for_scene(
 
 
 def get_media_dir_for_file(fpath):
-    return dirname(relpath(fpath, sys.path[-1]))
+    return os.path.dirname(os.path.relpath(fpath, proj_dir))
 
 
 def update_config_for_dev(module_path, orientation, config_aux=None):
