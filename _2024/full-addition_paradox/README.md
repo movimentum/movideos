@@ -4,6 +4,7 @@
 1. 0-intro.py: функционал, связанный с `shapes_to_background`, реализован
 в классе `custom.background.simple_shapes.BGSimpleShapes`
 
+2. 5-converge_to_any_number.py: аналогично
 
 
 # Примечание
