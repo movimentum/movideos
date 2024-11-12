@@ -11,8 +11,8 @@ from manim import config
 
 
 #%% Константы
-proj_dir = os.environ['PYTHONPATH'].split(os.pathsep)[-1]
-media_root_dir = os.path.join(proj_dir, 'media')
+repo_root = os.environ['PYTHONPATH'].split(os.pathsep)[-1]
+media_root_dir = os.path.join(repo_root, 'media')
 
 video_settings = dict(
     prod = (3840, 2160, 60),
@@ -64,7 +64,7 @@ def update_config_for_scene(
 
 
 def get_media_dir_for_file(fpath):
-    return os.path.dirname(os.path.relpath(fpath, proj_dir))
+    return os.path.dirname(os.path.relpath(fpath, repo_root))
 
 
 def update_config_for_dev(module_path, orientation, config_aux=None):
