@@ -1,5 +1,7 @@
-from custom.creatures import *
 from custom.background import *
+from custom.creatures import *
+from custom.geometry import *
+
 
 from helpers.scene_extension import SceneExtension
 
