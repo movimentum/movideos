@@ -1,13 +1,12 @@
-Это старый код, который можно рефакторить с учётом классов из `custom`,
-например:
-
-1. 0-intro.py: функционал, связанный с `shapes_to_background`, реализован
-в классе `custom.background.simple_shapes.BGSimpleShapes`
-
-2. 5-converge_to_any_number.py: аналогично
-
-
 # Примечание
+Это старый код, который можно рефакторить с учётом классов из `custom`.
+Например, для `0-intro.py` и `5-converge_to_any_number.py` функционал,
+связанный с `shapes_to_background`, реализован в общем виде в 
+в классе `custom.background.simple_shapes.BGSimpleShapes`. Однако используется
+локально определённая функция `auxfuncs.shapes_to_background`
+
+
+# Об использовании шрифтов
 Чтобы использовать особый шрифт, нужно установить его в систему или временно
 зарегистрировать его, указав путь
 
