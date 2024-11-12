@@ -2,23 +2,15 @@
 # 0. Вводная анимация (суммирование единиц) и обложка
 #
 
-import os
-
 from manim import *
 
 from movi_ext import *
 
-from auxfuncs import shapes_to_background
+from auxfuncs import shapes_to_background, get_person_svg_path
 
 
 #%%
 SceneExtension.video_orientation = 'landscape'
-
-
-#%%
-def get_person_svg(fn):
-    ''' name -- имя файла svg без разширения, например, abel'''
-    return os.path.join(repo_root, f'custom/svg/persons/{fn}.svg')
 
 
 #%%
@@ -150,8 +142,8 @@ class IntroAddUnities(MovingCameraScene, SceneExtension):
 
 #%%
 class Cover(IntroAddUnities):
-    fn_abe = get_person_svg('abel')
-    fn_rie = get_person_svg('riemann')
+    fn_abe = get_person_svg_path('abel')
+    fn_rie = get_person_svg_path('riemann')
     
     font = 'Unutterable'
     # font = 'Hiykaya'

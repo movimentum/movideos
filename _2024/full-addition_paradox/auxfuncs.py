@@ -1,13 +1,22 @@
 #
-# Дополнительные функции для использования при создании анимаций
+# Дополнительные функции
 #
 
 #%%
-from manim import *
+import os
 import re
+
+from manim import *
+
+from movi_ext import *
 
 
 #%%
+def get_person_svg_path(fn):
+    ''' name -- имя файла svg без разширения, например, abel'''
+    return os.path.join(repo_root, f'custom/svg/persons/{fn}.svg')
+
+
 def split2syms(s):
     """ Из строки-формулы делает массив
         a = b + ( c * d - e ) ^ 2
