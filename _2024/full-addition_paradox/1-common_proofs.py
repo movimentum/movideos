@@ -16,11 +16,6 @@ from auxfuncs import split2syms
 SceneExtension.video_orientation = 'landscape'
 
 
-#%%
-def get_svg_path(svg_sub_path):
-    return os.path.join(repo_root, f'custom/svg/{svg_sub_path}.svg')
-
-
 #%% Обычное доказательство путём деления на 0
 class SimpleAlgebraic(Scene, SceneExtension):
     def construct(self):
@@ -513,8 +508,9 @@ class Programmistic2(Scene, SceneExtension):
 
 #%% Жизненно-административное доказательство
 class Administrative(MovingCameraScene, SceneExtension):
-    fn_lamppost = get_svg_path('objects/lamppost')
-    fn_check = get_svg_path('simple/checkmark')
+    
+    fn_lamppost = SceneExtension.get_svgpath_object('lamppost')
+    fn_check = SceneExtension.get_svgpath_simple('checkmark')
     
     def construct(self):
         svg_plan = SVGMobject(self.fn_lamppost, stroke_color=BLUE)

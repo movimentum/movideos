@@ -2,12 +2,9 @@
 # Цитаты классиков
 #
 
-
 from manim import *
 
 from movi_ext import *
-
-from auxfuncs import get_person_svg_path
 
 
 #%%
@@ -16,8 +13,9 @@ SceneExtension.video_orientation = 'landscape'
 
 #%% Цитата Абеля
 class QuoteAbel(Scene, SceneExtension):
-    fn = get_person_svg_path('abel')
     
+    fn = pather.get_svgpath_person('abel')
+
     def construct(self):
         svg = self.prepare_svg_mobject(self.fn, height=6, stroke_color=BLUE)
 
@@ -71,10 +69,11 @@ class QuoteAbel(Scene, SceneExtension):
 
 #%% Выдающиеся математики
 class DistinguishedMathematicians(QuoteAbel):
-    fn_abel = get_person_svg_path('abel')
-    fn_riemann = get_person_svg_path('riemann')
-    fn_cauchy = get_person_svg_path('cauchy')
-    fn_dirichlet = get_person_svg_path('dirichlet')
+    
+    fn_abel = pather.get_svgpath_person('abel')
+    fn_riemann = pather.get_svgpath_person('riemann')
+    fn_cauchy = pather.get_svgpath_person('cauchy')
+    fn_dirichlet = pather.get_svgpath_person('dirichlet')
     
     def construct(self):
         h_tgt = 2
@@ -207,7 +206,8 @@ class DistinguishedMathematicians(QuoteAbel):
 
 #%%
 class QuotePushkin(QuoteAbel):
-    fn = get_person_svg_path('pushkin')
+    
+    fn = pather.get_svgpath_person('pushkin')
     
     def construct(self):
         svg = self.prepare_svg_mobject(self.fn, height=5.5, stroke_color=BLUE)
@@ -254,4 +254,4 @@ if __name__ == '__main__':
     
     from helpers.render import dev_render
     
-    dev_render(__file__, QuotePushkin)
+    dev_render(__file__, QuoteAbel)

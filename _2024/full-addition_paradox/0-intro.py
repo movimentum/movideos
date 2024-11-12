@@ -6,7 +6,7 @@ from manim import *
 
 from movi_ext import *
 
-from auxfuncs import shapes_to_background, get_person_svg_path
+from auxfuncs import shapes_to_background
 
 
 #%%
@@ -142,8 +142,9 @@ class IntroAddUnities(MovingCameraScene, SceneExtension):
 
 #%%
 class Cover(IntroAddUnities):
-    fn_abe = get_person_svg_path('abel')
-    fn_rie = get_person_svg_path('riemann')
+    
+    fn_abe = pather.get_svgpath_person('abel')
+    fn_rie = pather.get_svgpath_person('riemann')
     
     font = 'Unutterable'
     # font = 'Hiykaya'

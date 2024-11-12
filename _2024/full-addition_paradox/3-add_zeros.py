@@ -6,7 +6,7 @@ from manim import *
 
 from movi_ext import *
 
-from auxfuncs import split2syms, get_person_svg_path
+from auxfuncs import split2syms
 
 
 #%%
@@ -232,6 +232,9 @@ class AddZeros(MovingCameraScene, SceneExtension):
 
 #%% Определяем сумму числового ряда
 class SeriesSumDefinition(MovingCameraScene, SceneExtension):
+    
+    eu_path = pather.get_svgpath_person('euler')
+    
     def construct(self):
         ax = Axes(
             x_range=[0, 20, 5],
@@ -375,8 +378,7 @@ class SeriesSumDefinition(MovingCameraScene, SceneExtension):
         #
         ## Возможность суммирования расходящихся рядов
         #
-        eu_path = get_person_svg_path('euler')
-        svg = SVGMobject(eu_path, height=1.8, stroke_color=BLUE)
+        svg = SVGMobject(self.eu_path, height=1.8, stroke_color=BLUE)
         for mob in svg.submobjects:
             if not mob.stroke_width:
                 mob.stroke_width = 1
