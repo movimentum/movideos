@@ -5,6 +5,6 @@ class SceneExtension:
     CONFIG = None
     
     @classmethod
-    def skip(cls, should_skip_locally):
+    def skip(cls, should_skip_locally: bool) -> bool:
         return should_skip_locally and not cls.render_all_sections
-        
+

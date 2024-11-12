@@ -16,4 +16,6 @@ media
 .spyproject
 *.ai
 
+# Files the scenes can depend on (e.g. fonts)
+dependencies
 
