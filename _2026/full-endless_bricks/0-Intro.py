@@ -13,27 +13,54 @@ from movi_ext import *
 #%%
 SceneExtension.video_orientation = 'landscape'
 
+np.random.seed(0xDEADBEEF)
+
 
 #%%
 class Introduction(MovingCameraScene, SceneExtension):
     def construct(self):
         
+        shapes = BGSimpleShapes()
+        self.play(shapes.fadein())
+        
+        shapes.start_swinging()
+        
+        
+        self.camera.frame.save_state()
+        
+        # Строим сцену
         wall = BrickWall(rows=8, cols=10)
         
-        brace_L = Brace(wall, DOWN)
-        label_L = Text('length').scale(0.5).next_to(brace_L, DOWN)
-        grp_L = VGroup(brace_L, label_L)
-        
         brace_H = Brace(wall, RIGHT)
-        label_H = Text('height').scale(0.5).rotate(PI/2).next_to(brace_H, RIGHT)
-        grp_H = VGroup(brace_H, label_H)
+        label_H = MathTex('h \\rightarrow max ?', color=BLUE).rotate(PI/2).next_to(brace_H, RIGHT)
+        grp_H = VGroup(brace_H, label_H).set_color(BLUE)
         
         self.play(Create(wall))
+                
+        self.play(FadeIn(grp_H, shift=LEFT, scale=0.5))
+        
+        self.wait()
+        
+        grp = VGroup(wall, grp_H)
+        self.play(
+            Rotate(grp, -PI/2),
+            self.camera.frame.animate.set(height=1.1*grp.get_width())
+        )
+        
+        brace_L = Brace(wall, LEFT)
+        label_L = MathTex('l \\rightarrow max ?').rotate(-PI/2).next_to(brace_L, LEFT)
+        grp_L = VGroup(brace_L, label_L).set_color(BLUE)
+        
+        self.play(FadeIn(grp_L, shift=UP, scale=0.5))
+        
+        grp.add(grp_L)
         
         self.play(
-            FadeIn(grp_L, shift=UP),
-            FadeIn(grp_H, shift=LEFT)
+            Rotate(grp, PI/2),
+            Restore(self.camera.frame)
         )
+            
+        
         
         self.play(LaggedStart(
             *[FadeOut(wall.get_brick_at(col,row), shift=UR * (np.random.rand(3) - [0.5,0.5,0]))
@@ -41,7 +68,12 @@ class Introduction(MovingCameraScene, SceneExtension):
               if col != 3
               ],
             lag_ratio=0.01),
+            Unwrite(grp_H),
+            Unwrite(grp_L),
         )
+        
+        self.wait()
+
         
         # Заменяем стену на стопку
         brick = wall.get_brick_at(3,0)
@@ -51,7 +83,48 @@ class Introduction(MovingCameraScene, SceneExtension):
         self.add(stack)
         
         
-        self.play(FadeOut(grp_H, grp_L))
+        self.play(LaggedStart(*[FadeOut(
+            brick,
+            shift=2.0*RIGHT*(np.random.rand(3)-[0.5,0.5,0])) for brick in stack],
+            lag_ratio=0.01
+        ))
+        
+        self.wait()
+        
+        self.play(LaggedStart(
+            *[FadeIn(brick, shift=DOWN) for brick in stack],
+            lag_ratio=0.5
+        ))
+        
+        self.wait()
+        
+        stack.animate_bricks_random_shift_right(scene=self)
+        
+        
+        #############
+        
+        brace_frozen = BraceBetweenPoints(
+            stack.brick_objects[0].get_critical_point(RIGHT),
+            stack.brick_objects[-1].get_critical_point(RIGHT),
+            direction=DOWN
+        )
+        
+        label_frozen = MathTex('L').next_to(brace_frozen, DOWN)
+
+        dashed_line_frozen = DashedLine(
+            stack.brick_objects[-1].get_corner(DR),
+            brace_frozen.get_corner(UR),
+            color=GRAY
+        )
+        
+        
+        self.play(
+            Write(brace_frozen),
+            Write(label_frozen),
+            Create(dashed_line_frozen)
+        )
+        
+        self.wait()
         
         brace = always_redraw(lambda:
             BraceBetweenPoints(
@@ -61,7 +134,7 @@ class Introduction(MovingCameraScene, SceneExtension):
             )
         )
         label = always_redraw(lambda:
-            Text('свес').scale(0.5).next_to(brace, DOWN)
+            MathTex('L').next_to(brace, DOWN)
         )
         dashed_line = always_redraw(lambda: DashedLine(
             stack.brick_objects[-1].get_corner(DR),
@@ -69,22 +142,72 @@ class Introduction(MovingCameraScene, SceneExtension):
             color=GRAY
         ))
         
-        
+        self.remove(brace_frozen, label_frozen, dashed_line_frozen)        
         self.add(brace, label, dashed_line)
         
-        
+
+        # Двигаем стопку кирпичей
         for _ in range(4):
             stack.animate_bricks_random_shift_right(scene=self)
         
         
+        frozen_label = label.copy()
+        self.remove(label)
+        self.add(frozen_label)
         
-        # Удаляем убранные кирпичи
-        #[wall.remove_brick_at(col,row) for row in range(8) for col in range(10) if col != 3]
+        new_label = MathTex('L', '\\rightarrow max').next_to(brace, DOWN)
+        self.play(LaggedStart(
+            *[ReplacementTransform(frozen_label, new_label[0]),Write(new_label[1])],
+            lag_ratio=0.4
+        ))
         
-        #remaining_bricks = [wall.get_brick_at(3,j)]
-        # self.play(FadeOut(wall.get_column_objects(3)))
-        #wall_new.animate_brick_shift(3, 0, RIGHT, scene=self)
+        self.wait()
         
+        ### Вопросики сыпятся
+        n = 40
+        positions  = np.random.rand(n, 3) - 0.5
+        positions *= [12,6,0] 
+        scales = np.random.rand(n) * 2.5
+        q_marks = [
+            MathTex(r'?').scale(sc).set_color(BLUE).set_opacity(0.5).move_to(pos)
+            for sc,pos in zip(scales,positions)
+        ]
+        self.play(LaggedStart(
+            *[GrowFromCenter(q_mark) for q_mark in q_marks],
+            lag_ratio=0.05
+        ))
+        
+
+        self.wait()
+        
+        
+        shapes.stop_swinging()
+        
+
+        ani_g0 = AnimationGroup(
+            FadeOut(new_label, shift=DOWN),
+            FadeOut(brace, shift=DOWN, scale=0.5),
+            Uncreate(dashed_line),
+            lag_ratio=0.25,
+            run_time=2
+        )
+        ani_g1 = AnimationGroup(
+            *[FadeOut(brick, shift=UR*(np.random.rand(3) - 0.5)) for brick in stack],
+            lag_ratio=0.25,
+            run_time=2
+        )
+        ani_g2 = AnimationGroup(
+            self.camera.frame.animate.set(width=wall.get_height() * 1.0),
+            run_time=4,
+            rate_func=linear
+        )
+        ani_g3 = AnimationGroup(
+            *[FadeOut(q_mark, scale=0.5) for q_mark in q_marks],
+            lag_ratio=0.05,
+            run_time=3.5
+        )
+        
+        self.play(ani_g0, ani_g1, ani_g2, ani_g3, shapes.fadeout_with_random_shift())
         self.wait()
 
 
@@ -95,7 +218,7 @@ class BrickWall(VMobject):
         cols=8,
         brick_width=0.8,
         brick_height=0.4,
-        brick_color=RED,
+        brick_color=RED_E,
         mortar_color=WHITE,
         mortar_width=0.02,
         offset_even_rows=True,
