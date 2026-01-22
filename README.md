@@ -55,3 +55,36 @@ if __name__ == '__main__':
 ```
 
 Требуется поменять `SceneName` на имя интересующей сцены и запустить скрипт.
+
+
+# Дополнительные возможности
+
+## Пропуск рендеринга
+При создании сложных сцен удобно пропускать их части при рендеринге для
+экономии времени. Для этого существует метод сцены
+`self.next_section('section_name', skip_animations=True)`
+
+В данном репозитории имеется вспомогательный класс `SceneExtension`, который
+поможет не просто игнорировать рендеринг конкретного раздела, но и даст
+возможность разом игнорировать все затребованные в коде пропуски рендеринга.
+
+```python
+
+from manim import *
+from movi_ext import *
+
+
+# Если требуется рендерить все разделы не зависимо от того, что указано в
+# параметрах self.next_section, нужно выставить здесь True
+SceneExtension.render_all_sections = False
+
+class SceneWithSectionRendering(Scene, SceneExtension):  # наследуем класс-помощник
+    
+    def construct(self):
+
+        self.next_section('first_part', skip_animations=SceneExtension.skip(False))
+        # Эта часть не будет рендериться при использовании dev_render
+        
+        self.next_section('first_part', skip_animations=SceneExtension.skip(True))
+        # А эта часть будет
+```
