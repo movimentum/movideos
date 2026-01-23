@@ -12,7 +12,7 @@ from movi_ext import *
 #%%
 SceneExtension.video_orientation = 'landscape'
 
-SceneExtension.render_all_sections = True
+SceneExtension.render_all_sections = False
 
 np.random.seed(0xDEADBEEF)
 
@@ -22,7 +22,7 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
     
     def construct(self):
 
-        self.next_section('begining', skip_animations=SceneExtension.skip(False))
+        self.next_section('begining', skip_animations=SceneExtension.skip(True))
         
         n = 4
         h = (4 - 1) / n * 2
@@ -79,7 +79,7 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
 
 
         # Ещё 1
-        for i in range(2):
+        for i in range(3):
             new_rects, new_lines = self.add_rectangles_below(1, add_label=True)
             self.rescale_and_show(new_rects)
                 
@@ -91,7 +91,35 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
             
             # Показываем центр масс одного кирпича
             self.show_mass_center(2+i)
+            
+        self.next_section('current', skip_animations=SceneExtension.skip(False))
         
+        
+        self.play(LaggedStart(
+            ShowPassingFlashWithThinningStrokeWidth(
+                SurroundingRectangle(self.rects[-1], buff=0.2).set_color(RED)),
+            ShowPassingFlashWithThinningStrokeWidth(
+                SurroundingRectangle(self.rects[0], buff=0.2).set_color(RED)),
+            run_time=2,
+            lag_ratio=0.1
+        ))
+        self.wait()
+        
+        vline = DashedLine(5 * DOWN, 5 * UP, color=BLUE).move_to(
+            Group(self.rects[-1], self.rects[0]).get_center()
+        )
+        self.play(
+            #FadeIn(vline, shift=2*UP),
+            Write(vline),
+            #rate_func=there_and_back,
+            run_time=2
+        )
+        self.wait()
+        
+        self.play(FadeOut(vline, shift=UP, scale=1.2))
+        self.wait()
+        
+        return        
         
         self.next_section('add_more_bricks', skip_animations=SceneExtension.skip(True))
                         
