@@ -95,29 +95,96 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         self.next_section('current', skip_animations=SceneExtension.skip(False))
         
         
-        self.play(LaggedStart(
-            ShowPassingFlashWithThinningStrokeWidth(
-                SurroundingRectangle(self.rects[-1], buff=0.2).set_color(RED)),
-            ShowPassingFlashWithThinningStrokeWidth(
-                SurroundingRectangle(self.rects[0], buff=0.2).set_color(RED)),
-            run_time=2,
-            lag_ratio=0.1
-        ))
+        ### Сложим свесы
+        
+        ################
+        
+        [rect.save_state() for rect in self.rects]
+        [line.save_state() for line in self.lines]
+        
+        # Это подтвердит и простое суммирование свесов
+        #               0              1         2            3             4    5               6      7             8     9              10
+        sum1 = MathTex('{L \\over 2}', '\\cdot', '\\left(', '{1 \\over 1}', '+', '{1 \\over 2}', '+', '{1 \\over 3}', '+', '{1 \\over 4}', '\\right)')
+        sum1.next_to(self.rects[-1], RIGHT).shift(2*RIGHT)
+        #self.play(Write(sum1))
+        
+        remaining = (1,2,4,6,8,10)
+        
+        self.play(
+            LaggedStart(
+                TransformFromCopy(self.lines[-1][-1][0], sum1[0]),
+                TransformFromCopy(self.lines[1][-1][-1], sum1[3]),
+                TransformFromCopy(self.lines[2][-1][-1], sum1[5]),
+                TransformFromCopy(self.lines[3][-1][-1], sum1[7]),
+                TransformFromCopy(self.lines[4][-1][-1], sum1[9]),
+                lag_ratio=0.1
+            ),
+            *[FadeIn(sum1[idx], shift=DOWN) for idx in remaining],
+            run_time=2
+        )
         self.wait()
         
+       
+        self.play(
+            LaggedStart(
+                ShowPassingFlashWithThinningStrokeWidth(
+                    SurroundingRectangle(self.rects[-1], buff=0.2).set_color(RED)),
+                ShowPassingFlashWithThinningStrokeWidth(
+                    SurroundingRectangle(self.rects[0], buff=0.2).set_color(RED)),
+                run_time=2,
+                lag_ratio=0.1
+            ),
+            *[rect.animate.set_opacity(0.2) for rect in self.rects[1:5-1]],
+            *[line.animate.set_opacity(0.2) for line in self.lines],
+            self.rects[0].animate.set_stroke(width=2*self.stroke_width).set_color(GOLD),
+            self.rects[-1].animate.set_stroke(width=2*self.stroke_width).set_color(GOLD)
+        )
+        
+        self.wait()
+        
+        sum2 = MathTex('{L \\over 2}', '\\cdot', '\\left(', '{12 \\over 12}', '+', '{6 \\over 12}', '+', '{4 \\over 12}', '+', '{3 \\over 12}', '\\right)')
+        sum2.move_to(sum1)
+        self.play(ReplacementTransform(sum1, sum2))
+        self.wait()
+        
+        sum3 = MathTex('{L \\over 2}', '\\cdot', '{12 + 6 + 4 + 3 \\over 12}')
+        sum3.move_to(sum2, RIGHT)
+        self.play(TransformMatchingShapes(sum2, sum3))
+        self.wait()
+        
+        sum4 = MathTex('{L \\over 2}', '\\cdot', '{25 \\over 12}', '>', 'L')
+        sum4.set(color=GOLD)
+        sum4.move_to(sum3, LEFT).scale(1.2)
+        self.play(Succession(
+            TransformMatchingShapes(sum3, sum4[:-2]),
+            FadeIn(sum4[-2:], shift=LEFT)
+        ))
+        
+
         vline = DashedLine(5 * DOWN, 5 * UP, color=BLUE).move_to(
             Group(self.rects[-1], self.rects[0]).get_center()
         )
+        
         self.play(
             #FadeIn(vline, shift=2*UP),
             Write(vline),
+            Indicate(sum4),
             #rate_func=there_and_back,
             run_time=2
         )
         self.wait()
         
-        self.play(FadeOut(vline, shift=UP, scale=1.2))
+        self.play(
+            FadeOut(vline, shift=UP, scale=1.2),
+            FadeOut(sum4, shift=DOWN, scale=0.8),
+            LaggedStart(
+                *[Restore(rect) for rect in self.rects],
+                *[Restore(line) for line in self.lines],
+                lag_ratio=0.2,
+            )
+        )
         self.wait()
+        
         
         return        
         
