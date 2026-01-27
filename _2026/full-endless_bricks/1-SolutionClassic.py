@@ -14,7 +14,7 @@ from manim_cad_drawing_utils import *
 #%%
 SceneExtension.video_orientation = 'landscape'
 
-SceneExtension.render_all_sections = True
+SceneExtension.render_all_sections = False
 
 np.random.seed(0xDEADBEEF)
 
@@ -24,6 +24,9 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
     
     def construct(self):
 
+        #
+        ## Начало
+        #
         self.next_section('begining', skip_animations=SceneExtension.skip(True))
         
         n = 4
@@ -54,6 +57,7 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         self.rescale_and_show(new_rects)
         self.wait()
         
+        # Визуализируем длину кирпича
         dimL = Linear_Dimension(self.rects[0].get_critical_point(RIGHT),
                                 self.rects[0].get_critical_point(LEFT),
                                 text=MathTex('L').scale(1.3),
@@ -78,10 +82,14 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         
         self.play(FadeOut(dimL, shift=UP), run_time=2)
         self.wait()
-        return
 
 
-        # Если верхний немного подвинуть, опрокинется
+        #
+        ## Если верхний немного подвинуть, опрокинется
+        #
+        self.next_section('instability', skip_animations=SceneExtension.skip(True))
+        
+        
         grp = VGroup(r_base, new_lines[0])
         grp.save_state()
         self.play(grp.animate.shift(0.1 * RIGHT))
@@ -97,9 +105,13 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         self.play(Rotate(grp, angle=PI/2, about_point=self.rects[-1].get_corner(UR)), run_time=3)
         self.play(Restore(grp))
         self.wait()
+        
 
+        #
+        ## Добавляем больше кирпичей
+        #
+        self.next_section('add_more', skip_animations=SceneExtension.skip(True))
 
-        # Ещё 1
         for i in range(3):
             new_rects, new_lines = self.add_rectangles_below(1, add_label=True)
             self.rescale_and_show(new_rects)
@@ -112,13 +124,13 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
             
             # Показываем центр масс одного кирпича
             self.show_mass_center(2+i)
-            
-        self.next_section('current', skip_animations=SceneExtension.skip(False))
-        
-        
-        ### Сложим свесы
-        
-        ################
+            self.wait()
+
+
+        #
+        ## Пять кирпичей = верхний выступает за край нижнего
+        #
+        self.next_section('overshoot', skip_animations=SceneExtension.skip(True))
         
         [rect.save_state() for rect in self.rects]
         [line.save_state() for line in self.lines]
@@ -207,16 +219,16 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         self.wait()
         
         
-        return        
-        
-        self.next_section('add_more_bricks', skip_animations=SceneExtension.skip(True))
+        #
+        ## Добавляем больше кирпичей
+        #
+        self.next_section('add_more_bricks', skip_animations=SceneExtension.skip(False))
                         
-        # Ещё 4
-        for i in range(4):
-            new_rects, new_lines = self.add_rectangles_below(n if i < 3 else 10)
+        for i in range(3):
+            new_rects, new_lines = self.add_rectangles_below(n * (i + 1))
             self.rescale_and_show(new_rects)
             
-            self.play(LaggedStart(*[MoveToTarget(r) for r in self.rects], lag_ratio=0.1), run_time=3)
+            self.play(LaggedStart(*[MoveToTarget(r) for r in new_rects], lag_ratio=0.1), run_time=3)
             self.wait()
             
             self.play(LaggedStart(*[Create(line) for line in new_lines], lag_ratio=0.1))
@@ -228,14 +240,15 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         
         
         self.play(self.camera.frame.animate.move_to(Group(*self.lines)).set(width=Group(*self.lines).width * 1.5),
-                  *[line.animate.set_color([YELLOW_A,YELLOW_D][i%2]) for i,line in enumerate(self.lines)],
+                  *[line.animate.set_color([BLUE,RED][i%2]) for i,line in enumerate(self.lines)],
                   VGroup(*self.rects).animate.set_opacity(0.1)
                   #*[r.animate.set_opacity(0.3) for r in self.rects]
                   )
         self.wait()
         
-        
-        self.next_section('till_end', skip_animations=SceneExtension.skip(False))
+        return
+    
+        self.next_section('till_end', skip_animations=SceneExtension.skip(True))
         
         
         braces = [Brace(line) for line in self.lines]
