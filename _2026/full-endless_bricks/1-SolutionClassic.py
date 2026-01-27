@@ -8,11 +8,13 @@ from manim import *
 
 from movi_ext import *
 
+from manim_cad_drawing_utils import *
+
 
 #%%
 SceneExtension.video_orientation = 'landscape'
 
-SceneExtension.render_all_sections = False
+SceneExtension.render_all_sections = True
 
 np.random.seed(0xDEADBEEF)
 
@@ -50,14 +52,33 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         # Второй кирпич        
         new_rects, new_lines = self.add_rectangles_below(1, add_label=True)        
         self.rescale_and_show(new_rects)
+        self.wait()
+        
+        dimL = Linear_Dimension(self.rects[0].get_critical_point(RIGHT),
+                                self.rects[0].get_critical_point(LEFT),
+                                text=MathTex('L').scale(1.3),
+                                direction=UP,
+                                offset=2.5,
+                                outside_arrow=True,
+                                ext_line_offset=0,
+                                color=BLUE).set_opacity(0.5)
+        dimL['text'].set_opacity(1.0)
+        self.play(FadeIn(dimL, shift=DOWN), run_time=2)
+        self.wait()
+        
         self.play(MoveToTarget(new_rects[0]), run_time=3)
         
         # Выделяем свес
-        self.play(LaggedStart(*[Create(line) for line in new_lines], lag_ratio=0.1))
+        self.play(LaggedStart(*[Write(line) for line in new_lines], lag_ratio=0.1))
         self.wait()
         
         # Показываем центр масс одного кирпича
         self.show_mass_center(1)
+        self.wait()
+        
+        self.play(FadeOut(dimL, shift=UP), run_time=2)
+        self.wait()
+        return
 
 
         # Если верхний немного подвинуть, опрокинется
@@ -305,7 +326,7 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
     def rescale_and_show(self, new_rects=None):
         grp = Group(*[r.target for r in self.rects])
         #self.play(self.camera.auto_zoom(grp, margin=MED_LARGE_BUFF).align_to(self.r_base.target, RIGHT))
-        self.play(self.camera.auto_zoom(grp, margin=1))
+        self.play(self.camera.auto_zoom(grp, margin=3))
         if new_rects:
             self.play(*[Create(r) for r in new_rects])
         self.wait()

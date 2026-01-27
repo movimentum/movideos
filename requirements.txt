@@ -1,1 +1,2 @@
 manim==0.19.1
+manim-CAD_Drawing_Utils==0.0.5
