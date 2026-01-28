@@ -222,7 +222,7 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         #
         ## Добавляем больше кирпичей
         #
-        self.next_section('add_more_bricks', skip_animations=SceneExtension.skip(False))
+        self.next_section('add_more_bricks', skip_animations=SceneExtension.skip(True))
                         
         for i in range(3):
             new_rects, new_lines = self.add_rectangles_below(n * (i + 1))
@@ -246,38 +246,71 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
                   )
         self.wait()
         
-        return
-    
-        self.next_section('till_end', skip_animations=SceneExtension.skip(True))
         
+        #
+        ## Суммируем вклады
+        #
+        self.next_section('sum_contributions', skip_animations=SceneExtension.skip(True))
         
+        # Показываем дробные значения вкладов
         braces = [Brace(line) for line in self.lines]
-        labels = [MathTex(f'\\dfrac{1}{i}').scale(1.5).next_to(br, DOWN) for i, br in enumerate(braces)]
+        labels = [
+            MathTex(f'\\dfrac{1}{i}').scale(1.5 - i * 0.085).next_to(br, DOWN)
+            for i, br in enumerate(braces)
+        ]
+        dots = MathTex('\\ldots', color=BLUE_A)
+        dots.scale(3).next_to(VGroup(self.lines[10:]), 4 * DOWN)
+        labels.append(dots)
         
         ani = []
-        [ ani.extend((DrawBorderThenFill(br), FadeIn(label))) for br, label in zip(braces[1:10], labels[1:10]) ]
+        [ ani.extend( (DrawBorderThenFill(br), FadeIn(label)) )
+          for br, label in zip(braces[1:10], labels[1:10]) ]
+        ani.append(Write(labels[-1]))
         self.play(LaggedStart(*ani, lag_ratio=0.1))
         self.wait()
         
-        br_all = Brace(Group(*self.lines)).shift(2 * DOWN)
+        # Переводим в сумму гармонического ряда
+        br_all = Brace(Group(*self.lines)).shift(3 * DOWN)
         #                   1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9
         text_array = (r' + '.join([rf'\dfrac{1}{i}' for i in range(1, 10)]) + r' + \ldots').split(' ')
-        label_all = MathTex(*text_array).scale(1.5).next_to(br_all, DOWN).set_color(RED)
+        label_all = MathTex(*text_array)
+        label_all.scale(1.5).next_to(br_all, 1.2*DOWN).set_color(RED)
+        
+        shifts = np.random.rand(9,3) - [0.5, 0.5, 0.5]
+        shifts[:,2] = 0
+        shifts *= 5
         
         self.play(DrawBorderThenFill(br_all))
-        self.play(TransformMatchingShapes(VGroup(*labels[1:10]), label_all),
-                  FadeOut(*braces[1:10], scale=0.5)
-                  )
+        self.play(
+            TransformMatchingShapes(VGroup(*labels[1:10]), label_all[:-1]),
+            ReplacementTransform(dots, label_all[-1]),
+            run_time=5
+        )
+        self.play(LaggedStart(
+            *[ FadeOut(brace, shift=shift, scale=0.5)
+               for brace,shift in zip(braces[1:10], shifts) ],
+            lag_ratio=0.1
+        ))
+        
         self.wait()
+        
+
+        #
+        ## Суммируем вклады
+        #
+        self.next_section('harmonic_series', skip_animations=SceneExtension.skip(False))
         
         res_series = MathTex(r'\sum_{n=1}^{N}', r'\dfrac{1}{', r'n}').shift(2 * UP)
         res_series.next_to(Group(*self.lines), UP).shift(2 * UP)
-        res_hrm = MathTex(r'\sum_{n=1}^{\infty}', r'\dfrac{1}{', r'n}', r'\rightarrow \infty').move_to(res_series, LEFT)
-        
-        #self.play(#FadeIn(res_series[1], scale=2),
-        #          LaggedStart(*[ReplacementTransform(elem, res_series[1:3]) for elem in label_all[::2]],
-        #                      lag_ratio = 0.1)
-        #)
+        res_hrm = MathTex(r'{L \over 2} \cdot', r'\sum_{n=1}', r'^{\infty}', r'\dfrac{1}{', r'n}', r'\rightarrow', r'\infty').move_to(res_series, LEFT)
+        # Совмещаем суммы
+        res_hrm.align_to(res_series, DOWN)
+        res_hrm.shift(res_series.get_corner(DL)- res_hrm[1:].get_corner(DL))
+        # Подкрашиваем бесконечную сумму и первую дробь
+        res_hrm[-2].set_color(BLUE_B)
+        res_hrm[-1].set_color(BLUE)
+        res_hrm[0].set_opacity(0.3)
+        #res_hrm.submobjects[2].set_color(BLUE) # не можем достучаться до верхнего предела (непреодолённая проблема latex)
         
         self.play(
             LaggedStart(
@@ -286,15 +319,36 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
             LaggedStart(
                 *[ReplacementTransform(elem, res_series[0]) for elem in label_all[1::2]],
                 lag_ratio = 0.1),
-            self.camera.frame.animate(run_time=3).move_to(res_hrm).set_width(res_hrm.get_width() * 1.2)
+            self.camera.frame.animate(run_time=3)
+                .move_to(res_hrm)
+                .set_width(res_hrm.get_width() * 2)
         )
         self.wait()
+
+        # Подпись для L/2
+        bot = res_hrm[0].get_bottom() + 0.15 * DL
+        ptr = Arrow(bot + 0.5 * DOWN, bot, buff=0.05)
+        ptr.set_opacity(0.5)
+        txt = Text('полкирпича').scale(0.25).next_to(ptr, DOWN)
+        txt.set_opacity(0.5)   
+        ptr_grp = VGroup(ptr, txt)
         
-        
+        self.play(TransformMatchingShapes(res_series, res_hrm[1:-2]))
         self.play(
-            TransformMatchingTex(res_series, res_hrm),
-        #    self.camera.auto_zoom(res_hrm).scale(1.2)
+            FadeIn(res_hrm[-2:], shift=LEFT),
+            FadeIn(res_hrm[0], shift=RIGHT)
         )
+        self.play(FadeIn(ptr_grp, shift=0.25*UP))
+        self.wait()
+        self.play(FadeOut(ptr_grp, shift=0.25*DOWN))
+        self.wait()
+        
+        # Выделить бесконечный предел
+        self.play(ShowPassingFlashWithThinningStrokeWidth(
+            SurroundingRectangle(res_hrm[-2:], buff=0.2).set_color(RED),
+            time_width=0.4,
+            run_time=3,
+        ))
         self.wait()
 
     
