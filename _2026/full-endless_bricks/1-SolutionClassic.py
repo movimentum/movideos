@@ -1,5 +1,5 @@
 #
-# 0. Завязка
+# 1. Классическое решение
 #
 
 import numpy as np
@@ -14,7 +14,7 @@ from manim_cad_drawing_utils import *
 #%%
 SceneExtension.video_orientation = 'landscape'
 
-SceneExtension.render_all_sections = False
+SceneExtension.render_all_sections = True
 
 np.random.seed(0xDEADBEEF)
 
@@ -302,7 +302,7 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         
         res_series = MathTex(r'\sum_{n=1}^{N}', r'\dfrac{1}{', r'n}').shift(2 * UP)
         res_series.next_to(Group(*self.lines), UP).shift(2 * UP)
-        res_hrm = MathTex(r'{L \over 2} \cdot', r'\sum_{n=1}', r'^{\infty}', r'\dfrac{1}{', r'n}', r'\rightarrow', r'\infty').move_to(res_series, LEFT)
+        res_hrm = MathTex(r'{L \over 2} \cdot', r'\sum_{n=1}', r'^{\infty}', r'\dfrac{1}{', r'n}', r'=', r'\infty').move_to(res_series, LEFT)
         # Совмещаем суммы
         res_hrm.align_to(res_series, DOWN)
         res_hrm.shift(res_series.get_corner(DL)- res_hrm[1:].get_corner(DL))
