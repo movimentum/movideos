@@ -53,124 +53,6 @@ class PhysicalLimitation(ThreeDScene, SceneExtension):
         self.wait(2)
 
 ########################################
-class BrickWithDimensionsTest(ThreeDScene, SceneExtension):
-    def construct(self):
-        # Параметры кирпича
-        brick_length = 4
-        brick_width = 2
-        brick_height = 1
-        
-        # Создание кирпича
-        brick = Prism(
-            dimensions=[brick_length, brick_width, brick_height],
-            fill_color=RED_D,
-            fill_opacity=0.8,
-            stroke_color=WHITE,
-            stroke_width=2
-        )
-        
-        self.begin_ambient_camera_rotation()
-        
-        
-        # Настройка начального положения камеры
-        self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES)
-        
-        # Анимация появления кирпича
-        self.play(Create(brick), run_time=2)
-        self.wait(0.5)
-        
-        # Создание осей и подписей размеров
-        # Длина (a)
-        length_line = Line(
-            brick.get_corner(DL + IN), 
-            brick.get_corner(DR + IN),
-            color=YELLOW,
-            stroke_width=3
-        )
-        length_label = Text("a", color=YELLOW, font_size=24).next_to(length_line, DOWN)
-        
-        # Ширина (b)
-        width_line = Line(
-            brick.get_corner(DR + IN), 
-            brick.get_corner(DR + OUT),
-            color=GREEN,
-            stroke_width=3
-        )
-        width_label = Text("b", color=GREEN, font_size=24).next_to(width_line, RIGHT)
-        
-        # Высота (c)
-        height_line = Line(
-            brick.get_corner(DL + IN), 
-            brick.get_corner(UL + IN),
-            color=BLUE,
-            stroke_width=3
-        )
-        height_label = Text("c", color=BLUE, font_size=24).next_to(height_line, LEFT)
-        
-        # Добавление размеров с анимацией
-        self.play(
-            Create(length_line),
-            Write(length_label),
-            run_time=1
-        )
-        
-        self.play(
-            Create(width_line),
-            Write(width_label),
-            run_time=1
-        )
-        
-        self.play(
-            Create(height_line),
-            Write(height_label),
-            run_time=1
-        )
-        
-        self.wait(0.5)
-        
-        # Функция для изменения ракурса камеры
-        def change_camera_view(phi, theta, zoom=1):
-            self.move_camera(
-                phi=phi * DEGREES,
-                theta=theta * DEGREES,
-                zoom=zoom,
-                run_time=1.5,
-                frame_center=brick.get_center()
-            )
-            self.wait(0.5)  # Пауза между сменами ракурсов
-        
-        # Изменение ракурсов камеры каждые 2 секунды
-        # 1. Вид спереди
-        change_camera_view(phi=90, theta=-90, zoom=1.2)
-        
-        # 2. Вид сверху
-        change_camera_view(phi=0, theta=0, zoom=1.2)
-        
-        # 3. Вид сбоку
-        change_camera_view(phi=90, theta=0, zoom=1.2)
-        
-        # 4. Изометрический вид
-        change_camera_view(phi=75, theta=45, zoom=1.2)
-        
-        # 5. Вид снизу
-        change_camera_view(phi=180, theta=0, zoom=1.2)
-        
-        # Финальная пауза
-        self.wait(2)
-        
-        # Плавное исчезновение
-        self.play(
-            FadeOut(brick),
-            FadeOut(length_line),
-            FadeOut(width_line),
-            FadeOut(height_line),
-            FadeOut(length_label),
-            FadeOut(width_label),
-            FadeOut(height_label),
-            run_time=1.5
-        )
-
-
 class AnimatedBrickTest(ThreeDScene, SceneExtension):
     def construct(self):
         # Размеры кирпича
@@ -298,44 +180,38 @@ class AnimatedBrickTest(ThreeDScene, SceneExtension):
 
 class BrickBreak(ThreeDScene, SceneExtension):
     
+    dimensions    = 3, 2, 1  # длина, ширина, высота кирпича
+    n_parts = 4, 3, 2  # количество осколков по длине, ширине, высоте
+    
     def construct(self):
         
-        l, w, h    = 3, 2, 1  # длина, ширина, высота кирпича
-        nl, nw, nh = 4, 3, 2  # количество осколков по длине, ширине, высоте
+        l, w, h    = self.dimensions  # длина, ширина, высота кирпича
+        nl, nw, nh = self.n_parts     # количество осколков по длине, ширине, высоте    
         
         self.begin_ambient_camera_rotation(rate=0.1)
         self.set_camera_orientation(phi=60*DEGREES, theta=45*DEGREES, zoom=1)
         
         
         #
-        ##
+        ## Основной кирпич и его ноша
         #
-        self.next_section('begining', skip_animations=SceneExtension.skip(False))
+        self.next_section('begining', skip_animations=SceneExtension.skip(True))
         
         # Исходный кирпич
-        brick = Prism(
-            dimensions=[l, w, h],
-            fill_color=RED_D,
-            fill_opacity=0.9,
-            stroke_color=WHITE,
-            stroke_width=3
-        ).shift(IN)
+        brick = self.make_brick().shift(IN)
+
+        # Кирпичи сверху (n штук), сдвинутые случайным образом
+        n = 6
         
-        bricks_above = [brick.copy() for _ in range(6)]
+        def stack(mobj, target):
+            mobj.next_to(target, OUT, buff=0).shift(np.random.uniform(-1,1) * RIGHT)
         
-        [ b.set_color(BLUE)
-           .set_fill(opacity=0.2)
-           .set_stroke(opacity=0.2)
-           for b in bricks_above
-        ]
+        bricks_above = [
+            brick.copy().set_color(BLUE).set_stroke(opacity=0.2)
+            for _ in range(n)]
         
-        bricks_above[0].next_to(brick, OUT, buff=0).shift(np.random.uniform(-1,1) * RIGHT)
-        
-        [ bricks_above[i]
-          .next_to(bricks_above[i-1], OUT, buff=0)
-          .shift(np.random.uniform(-1,1) * RIGHT)
-          for i in range(1, len(bricks_above))
-        ]
+        stack(bricks_above[0], brick)
+        [ stack(bricks_above[i], bricks_above[i-1])  for i in range(1, n) ]
         
         self.play(DrawBorderThenFill(brick), run_time=3)
         self.wait()
@@ -352,6 +228,8 @@ class BrickBreak(ThreeDScene, SceneExtension):
         #
         ## Осколки
         #
+        self.next_section('disassembling', skip_animations=SceneExtension.skip(True))
+        
         dl, dw, dh = l/nl, w/nw, h/nh
 
         pieces = VGroup()
@@ -384,6 +262,8 @@ class BrickBreak(ThreeDScene, SceneExtension):
                     piece.set_stroke(color=BLUE_A)
                     
                     pieces.add(piece)
+        
+        [ piece.save_state() for piece in pieces ]
         
         self.play(
             FadeOut(brick),
@@ -427,21 +307,103 @@ class BrickBreak(ThreeDScene, SceneExtension):
                 lag_ratio=0.1),
             run_time=2
         )
-        self.wait(8)
+        self.wait(4)
         
-        self.next_section('3D-brick', skip_animations=SceneExtension.skip(False))
+
+        #
+        ## Восстановление кирпича
+        #
+        self.next_section('reassembling', skip_animations=SceneExtension.skip(True))
         
-        # Исчезновение осколков
         self.play(
             FadeOut(text, shift=OUT*0.4),
             LaggedStart(
-                *[FadeOut(piece, shift=5*(np.random.rand(3) * (1,1,0) - [0.5,0.5,0])) for piece in pieces],
+                *[Restore(piece) for piece in pieces],
+                #*[FadeOut(piece, shift=5*(np.random.rand(3) * (1,1,0) - [0.5,0.5,0])) for piece in pieces],
                 run_time=2,
                 lag_ratio=0.01
         ))
+        self.wait()
+        
+        self.play(
+            FadeIn(brick),
+            FadeOut(pieces),
+            run_time=1.5
+        )
+        self.wait()
+        
+        
+        #
+        ## Размеры кирпича
+        #
+        self.next_section('Sizing', skip_animations=SceneExtension.skip(False))
+        
+        self.play(brick.animate.shift(OUT))
+        self.wait()
+        
+        dimL = Linear_Dimension(brick.get_critical_point(RIGHT),
+                                brick.get_critical_point(LEFT),
+                                text=Text('25 см').scale(0.7),
+                                direction=UP,
+                                offset=1.5,
+                                outside_arrow=True,
+                                ext_line_offset=0,
+                                color=BLUE)
+        dimL.set_opacity(0.5).next_to(brick,UP,buff=0).align_to(brick,IN)
+        dimL['text'].set_opacity(1.0)
+        
+        dimH = Linear_Dimension(brick.get_critical_point(OUT),
+                                brick.get_critical_point(IN),
+                                text=Text('6.5 см').scale(0.7),
+                                direction=RIGHT,
+                                offset=1.5,
+                                outside_arrow=True,
+                                # ext_line_offset=0,
+                                color=BLUE)
+        dimH.set_opacity(0.5).next_to(brick,RIGHT,buff=0).align_to(brick,DOWN)
+        dimH['text'].set_opacity(1.0).rotate(PI/2, Y_AXIS).rotate(-PI/2, axis=Z_AXIS, about_point=dimH['arrow1'].get_center())
+        
+        dimW = Linear_Dimension(brick.get_critical_point(UP),
+                                brick.get_critical_point(DOWN),
+                                text=Text('12 см').scale(0.7),
+                                direction=LEFT,
+                                offset=1.5,
+                                outside_arrow=True,
+                                ext_line_offset=0,
+                                color=BLUE)
+        dimW.set_opacity(0.5).next_to(brick,LEFT,buff=0).align_to(brick,IN)
+        dimW['text'].set_opacity(1.0)
+        
+        
+        self.play(
+            FadeIn(dimL, shift=DOWN),
+            FadeIn(dimW, shift=OUT),
+            FadeIn(dimH, shift=LEFT),
+            run_time=2
+        )
+        self.wait(20)
+
+
+
+
+
         
         # Останавливаем вращение камеры
         self.stop_ambient_camera_rotation()
+        
+
+    def make_brick(self, fill_params=(RED_D, 0.9), edge_params=(WHITE, 3.0)):
+        """ Создаёт кирпич """
+
+        fill_color, fill_opacity = fill_params
+        edge_color, edge_width = edge_params
+        
+        return Prism(dimensions=self.dimensions,
+                     fill_color=fill_color,
+                     fill_opacity=fill_opacity,
+                     stroke_color=edge_color,
+                     stroke_width=edge_width)
+
 
         
 #%% Тестовый рендер
