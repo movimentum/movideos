@@ -341,43 +341,27 @@ class BrickBreak(ThreeDScene, SceneExtension):
         self.play(brick.animate.shift(OUT))
         self.wait()
         
-        dimL = Linear_Dimension(brick.get_critical_point(RIGHT),
-                                brick.get_critical_point(LEFT),
-                                text=TexCyr(r'$l = 25$ см').scale(0.7),
-                                direction=UP,
-                                offset=1.5,
-                                outside_arrow=True,
-                                color=BLUE)
-        dimL.set_opacity(0.5).next_to(brick,UP,buff=0).align_to(brick,IN)
-        dimL['text'].set_opacity(1.0)
-        dimL['arrow1'].scale(0.5)
-        dimL['arrow2'].scale(0.5)
+        def make_dim(start, end, direction, align_direction, text,
+                     text_scale=0.7, arrow_scale=0.5, offset=1.5):
+            dim = Linear_Dimension(brick.get_critical_point(start),
+                                   brick.get_critical_point(end),
+                                   text=TexCyr(text).scale(text_scale),
+                                   direction=direction,
+                                   offset=offset,
+                                   outside_arrow=True,
+                                   color=BLUE)
+            dim.set_opacity(0.5)
+            dim.next_to(brick, direction, buff=0).align_to(brick,align_direction)
+            dim['text'].set_opacity(1.0)
+            dim['arrow1'].scale(arrow_scale)
+            dim['arrow2'].scale(arrow_scale)
+            return dim
         
-        dimH = Linear_Dimension(brick.get_critical_point(OUT),
-                                brick.get_critical_point(IN),
-                                text=TexCyr(r'$h = 6.5$ см').scale(0.7),
-                                direction=RIGHT,
-                                offset=1.5,
-                                outside_arrow=True,
-                                color=BLUE)
-        dimH.set_opacity(0.5).next_to(brick,RIGHT,buff=0).align_to(brick,DOWN)
-        dimH['text'].set_opacity(1.0)
+        dimL = make_dim(RIGHT, LEFT, UP, IN, r'$l = 25$ см')
+        dimH = make_dim(OUT, IN, RIGHT, DOWN, r'$h = 6.5$ см')
+        dimW = make_dim(UP, DOWN, LEFT, IN, r'$w = 12$ см')
+        
         dimH['text'].rotate(PI/2, Y_AXIS).rotate(-PI/2, axis=Z_AXIS, about_point=dimH['arrow1'].get_center())
-        dimH['arrow1'].scale(0.5)
-        dimH['arrow2'].scale(0.5)
-        
-        dimW = Linear_Dimension(brick.get_critical_point(UP),
-                                brick.get_critical_point(DOWN),
-                                text=TexCyr(r'$w = 12$ см').scale(0.7),
-                                direction=LEFT,
-                                offset=1.5,
-                                outside_arrow=True,
-                                color=BLUE)
-        dimW.set_opacity(0.5).next_to(brick,LEFT,buff=0).align_to(brick,IN)
-        dimW['text'].set_opacity(1.0)
-        dimW['arrow1'].scale(0.5)
-        dimW['arrow2'].scale(0.5)
-        
         
         self.play(
             FadeIn(dimL, shift=DOWN),
@@ -386,7 +370,6 @@ class BrickBreak(ThreeDScene, SceneExtension):
             run_time=2
         )
         self.wait(20)
-
 
         
         # Останавливаем вращение камеры
