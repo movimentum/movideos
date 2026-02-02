@@ -9,3 +9,5 @@ from helpers.path_finder import pather
 
 from helpers.scene_extension import SceneExtension
 
+from helpers.tex import TexCyr
+
