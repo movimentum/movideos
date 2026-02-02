@@ -343,36 +343,40 @@ class BrickBreak(ThreeDScene, SceneExtension):
         
         dimL = Linear_Dimension(brick.get_critical_point(RIGHT),
                                 brick.get_critical_point(LEFT),
-                                text=Text('25 см').scale(0.7),
+                                text=TexCyr(r'$l = 25$ см').scale(0.7),
                                 direction=UP,
                                 offset=1.5,
                                 outside_arrow=True,
-                                ext_line_offset=0,
                                 color=BLUE)
         dimL.set_opacity(0.5).next_to(brick,UP,buff=0).align_to(brick,IN)
         dimL['text'].set_opacity(1.0)
+        dimL['arrow1'].scale(0.5)
+        dimL['arrow2'].scale(0.5)
         
         dimH = Linear_Dimension(brick.get_critical_point(OUT),
                                 brick.get_critical_point(IN),
-                                text=Text('6.5 см').scale(0.7),
+                                text=TexCyr(r'$h = 6.5$ см').scale(0.7),
                                 direction=RIGHT,
                                 offset=1.5,
                                 outside_arrow=True,
-                                # ext_line_offset=0,
                                 color=BLUE)
         dimH.set_opacity(0.5).next_to(brick,RIGHT,buff=0).align_to(brick,DOWN)
-        dimH['text'].set_opacity(1.0).rotate(PI/2, Y_AXIS).rotate(-PI/2, axis=Z_AXIS, about_point=dimH['arrow1'].get_center())
+        dimH['text'].set_opacity(1.0)
+        dimH['text'].rotate(PI/2, Y_AXIS).rotate(-PI/2, axis=Z_AXIS, about_point=dimH['arrow1'].get_center())
+        dimH['arrow1'].scale(0.5)
+        dimH['arrow2'].scale(0.5)
         
         dimW = Linear_Dimension(brick.get_critical_point(UP),
                                 brick.get_critical_point(DOWN),
-                                text=Text('12 см').scale(0.7),
+                                text=TexCyr(r'$w = 12$ см').scale(0.7),
                                 direction=LEFT,
                                 offset=1.5,
                                 outside_arrow=True,
-                                ext_line_offset=0,
                                 color=BLUE)
         dimW.set_opacity(0.5).next_to(brick,LEFT,buff=0).align_to(brick,IN)
         dimW['text'].set_opacity(1.0)
+        dimW['arrow1'].scale(0.5)
+        dimW['arrow2'].scale(0.5)
         
         
         self.play(
@@ -382,9 +386,6 @@ class BrickBreak(ThreeDScene, SceneExtension):
             run_time=2
         )
         self.wait(20)
-
-
-
 
 
         
@@ -405,7 +406,6 @@ class BrickBreak(ThreeDScene, SceneExtension):
                      stroke_width=edge_width)
 
 
-        
 #%% Тестовый рендер
 if __name__ == '__main__':
     
