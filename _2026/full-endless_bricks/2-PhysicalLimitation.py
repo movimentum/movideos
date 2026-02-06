@@ -12,8 +12,6 @@ from manim_cad_drawing_utils import *
 
 
 #%%
-SceneExtension.video_orientation = 'landscape'
-
 SceneExtension.render_all_sections = False
 
 np.random.seed(0xDEADBEEF)
@@ -22,12 +20,24 @@ np.random.seed(0xDEADBEEF)
 #%% Расчёт наибольшей нагрузки
 class PhysicalLimitation(MovingCameraScene, SceneExtension):
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        SceneExtension.video_orientation = 'portrait'
+    
+    
     def construct(self):
-        pass
+        
+        rect = Rectangle()
+        self.add(rect)
+        self.wait()
 
 
 #%% Кирпич с размерами
 class BrickBreak(ThreeDScene, SceneExtension):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        SceneExtension.video_orientation = 'landscape'
     
     dimensions = 3, 2, 1  # длина, ширина, высота кирпича
     n_parts = 4, 3, 2  # количество осколков по длине, ширине, высоте
@@ -292,6 +302,6 @@ if __name__ == '__main__':
     
     from helpers.render import dev_render
     
-    dev_render(__file__, BrickBreak)
+    dev_render(__file__, PhysicalLimitation)
 
         
