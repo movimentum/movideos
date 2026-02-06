@@ -77,7 +77,105 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         
         self.play(TransformMatchingShapes(mass_second, mass))
         self.wait()
+        
+        #
+        ## Добавляем предел прочности на сжатие
+        #
+        self.next_section('strengthlimit', skip_animations=SceneExtension.skip(False))
+        
+        sigma = TexCyr(r'$\sigma = 30$ МПа').next_to(mass, DOWN, buff=MED_LARGE_BUFF)
+        self.play(Write(sigma))
+        self.wait()
 
+        h, w = 1, 3
+        brick = Rectangle(height=h, width=w, color=BLUE, fill_opacity=0.5, fill_color=RED)
+        brick.shift(5 * DOWN)
+        self.play(DrawBorderThenFill(brick))
+        self.wait()
+        
+        n = 8
+        stack = [brick.copy().set_opacity(0.5).set_fill(opacity=0) for _ in range(n)]
+        stack[0].next_to(brick, UP, buff=0)
+        [stack[i].next_to(stack[i-1], UP, buff=0) for i in range(1, n)]
+        shifts = RIGHT.reshape(1,3) * w * (np.random.rand(n,1) - 0.5)
+        [el.shift(ds) for el, ds in zip(stack, shifts)]
+        
+        self.play(LaggedStart(
+            *[FadeIn(b, shift=-ds) for b,ds in zip(stack,shifts)],
+            lag_ratio=0.1
+        ))
+        self.wait()
+        
+        self.play(LaggedStart(
+            *[b.animate.align_to(brick, LEFT) for b in stack],
+            lag_ratio=0.1
+        ))
+
+
+#%%
+class DistributedPressureArrows(VGroup):
+    
+    def __init__(self, low, left, right, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.low = low
+        self.left = left
+        self.right = right
+
+        self.phase = 0        
+        self.reconstruct_sin_wave(ampl=0)
+        
+    
+    def reconstruct_sin_wave(self, phase=None, lmin=0.7, ampl=0.3, num_arrows=15):
+        
+        if not phase:
+            phase = self.phase
+        else:
+            self.phase = phase
+        
+        arrows = VGroup()
+        for i in range(num_arrows):
+            x_pos = self.left + (i/(num_arrows-1)) * (self.right - self.left)
+            
+            wave = np.sin(2 * np.pi * (i/num_arrows) + phase * 2)
+            wave = ampl * (1 + wave)
+            
+            arrow_length = lmin + wave
+            
+            arrow = Arrow(
+                start=[x_pos, self.low + arrow_length, 0],
+                end=[x_pos, self.low, 0],
+                color=interpolate_color(RED, YELLOW, arrow_length),
+                stroke_width=1 + 3 * wave,
+                max_tip_length_to_length_ratio=0.15,
+                buff=SMALL_BUFF
+            )
+            arrows.add(arrow)
+        self.become(arrows)
+    
+
+class TestArrows(Scene, SceneExtension):
+    def construct(self):
+        
+        rect = Rectangle()
+        
+        arrows = DistributedPressureArrows(
+            rect.get_top()[1], rect.get_left()[0], rect.get_right()[0])
+        
+        self.add(rect, arrows)
+        self.wait()
+        
+        self.play(arrows.animate.reconstruct_sin_wave())
+        self.wait()
+        
+        # Анимация волны давления
+        for frame in np.arange(0, 4, 0.1):
+            self.play(arrows.animate.reconstruct_sin_wave(frame), run_time=0.1, rate_func=linear)
+        self.wait()
+        
+        self.play(arrows.animate.reconstruct_sin_wave(ampl=0))
+        self.wait()
+        
 
 #%% Кирпич с размерами
 class BrickBreak(ThreeDScene, SceneExtension):
@@ -349,6 +447,6 @@ if __name__ == '__main__':
     
     from helpers.render import dev_render
     
-    dev_render(__file__, PhysicalLimitation)
+    dev_render(__file__, TestArrows)
 
         
