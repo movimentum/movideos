@@ -26,9 +26,56 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
     
     
     def construct(self):
+
+        #
+        ## Добавляем плотность
+        #
+        self.next_section('density', skip_animations=SceneExtension.skip(True))
+        density_range = TexCyr(r'$\rho =~$', '$1650~$', '$\ldots~$', '$1850~$', r'$\text{кг/м}^3$')
+        density = TexCyr(r'$\rho \approx~$', '$1750~$', r'$\text{кг/м}^3$')
         
-        rect = Rectangle()
-        self.add(rect)
+        self.play(Write(density_range))
+        self.wait()
+        
+        self.play(
+            FadeOut(density_range[1], shift=UL),
+            FadeOut(density_range[2], shift=UP),
+            FadeOut(density_range[3], shift=UR),
+            ReplacementTransform(density_range[0], density[0]),
+            ReplacementTransform(density_range[-1], density[-1]),
+            FadeIn(density[1], shift=UP)
+        )
+        self.wait()
+        
+        #
+        ## Добавляем массу
+        #
+        self.next_section('mass', skip_animations=SceneExtension.skip(True))
+        
+        eq = TexCyr(r'$\text{чистоплотность} = \dfrac{\text{чисто масса}}{\text{чисто объём}}$')
+        self.play(
+            density.animate.to_edge(UP),
+            Write(eq)
+        )
+        self.wait()
+        
+        mass_zero = TexCyr(r'$\rho = \dfrac{m}{\text{объём}}$')
+        self.play(TransformMatchingShapes(eq, mass_zero))
+        self.wait()
+       
+        mass_first = TexCyr(r'$m = \rho \cdot \text{объём}$')
+        self.play(TransformMatchingShapes(mass_zero, mass_first))
+        self.wait()
+
+        mass_second = TexCyr(r'$m = \rho \cdot \left(l \cdot w \cdot h \right)$')
+        
+        self.play(TransformMatchingShapes(mass_first, mass_second))
+        self.wait()
+        
+        mass = TexCyr(r'$m\approx 3.5$ кг')
+        mass.next_to(density, DOWN)
+        
+        self.play(TransformMatchingShapes(mass_second, mass))
         self.wait()
 
 
