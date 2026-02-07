@@ -113,7 +113,7 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
 
 
 #%%
-class DistributedPressureArrows(VGroup):
+class DistributedLoad(VGroup):
     
     def __init__(self, low, left, right, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -152,29 +152,32 @@ class DistributedPressureArrows(VGroup):
             )
             arrows.add(arrow)
         self.become(arrows)
+
+
+    def make_even(self, lmin=0.7):
+        self.phase = 0
+        self.reconstruct_sin_wave(lmin=lmin, ampl=0)
     
 
-class TestArrows(Scene, SceneExtension):
+class TestDistributedLoadArrows(Scene, SceneExtension):
     def construct(self):
         
         rect = Rectangle()
         
-        arrows = DistributedPressureArrows(
-            rect.get_top()[1], rect.get_left()[0], rect.get_right()[0])
+        load = DistributedLoad(
+            rect.get_top()[1],
+            rect.get_left()[0],
+            rect.get_right()[0]
+        )
         
-        self.add(rect, arrows)
-        self.wait()
+        self.add(rect, load)
         
-        self.play(arrows.animate.reconstruct_sin_wave())
-        self.wait()
-        
-        # Анимация волны давления
-        for frame in np.arange(0, 4, 0.1):
-            self.play(arrows.animate.reconstruct_sin_wave(frame), run_time=0.1, rate_func=linear)
-        self.wait()
-        
-        self.play(arrows.animate.reconstruct_sin_wave(ampl=0))
-        self.wait()
+        for phase in (None, 2, 0.5, 0.3):
+            self.play(load.animate.reconstruct_sin_wave(phase))
+            self.wait(0.5)
+            
+        self.play(load.animate.make_even(lmin=1))
+        self.wait(0.5)
         
 
 #%% Кирпич с размерами
