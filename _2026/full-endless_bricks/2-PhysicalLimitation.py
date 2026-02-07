@@ -31,8 +31,8 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         ## Добавляем плотность
         #
         self.next_section('density', skip_animations=SceneExtension.skip(True))
-        density_range = TexCyr(r'$\rho =~$', '$1650~$', '$\ldots~$', '$1850~$', r'$\text{кг/м}^3$')
-        density = TexCyr(r'$\rho \approx~$', '$1750~$', r'$\text{кг/м}^3$')
+        density_range = TexCyr(r'$\rho =~$', '$1\,650~$', '$\ldots~$', '$1\,850~$', r'$\text{кг/м}^3$')
+        density = TexCyr(r'$\rho \approx~$', '$1\,750~$', r'$\text{кг/м}^3$')
         
         self.play(Write(density_range))
         self.wait()
@@ -81,7 +81,7 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         #
         ## Добавляем предел прочности на сжатие
         #
-        self.next_section('strengthlimit', skip_animations=SceneExtension.skip(False))
+        self.next_section('strengthlimit', skip_animations=SceneExtension.skip(True))
         
         sigma = TexCyr(r'$\sigma = 30$ МПа').next_to(mass, DOWN, buff=MED_LARGE_BUFF)
         self.play(Write(sigma))
@@ -106,10 +106,193 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         ))
         self.wait()
         
-        self.play(LaggedStart(
-            *[b.animate.align_to(brick, LEFT) for b in stack],
-            lag_ratio=0.1
-        ))
+        
+        # Визуализируем нагрузку
+        load = DistributedLoad(
+            brick.get_top()[1],
+            brick.get_left()[0] + 0.1,
+            brick.get_right()[0] - 0.1
+        )
+        load.reconstruct_sin_wave()
+        
+
+        def move_stack_and_load_randomly(ampl=w*0.7, phase=None, wait_time=1):
+            """ Смещает кирпичи в стопке случайным образом и двигает нагрузку """
+            for b in stack:
+                b.target = b.copy().align_to(brick, LEFT)
+            
+            shifts = RIGHT.reshape(1,3) * ampl * (np.random.rand(n,1) - 0.5)
+            if phase == None:
+                phase = np.random.rand() * 2 * PI
+           
+            *[b.target.shift(-ds) for b,ds in zip(stack, shifts)],
+            
+            self.play(
+                LaggedStart(
+                    *[MoveToTarget(b) for b in stack],
+                    lag_ratio=0.1
+                ),
+                load.animate.reconstruct_sin_wave(phase)
+            )
+            self.wait(wait_time)
+
+        
+        self.play(Create(load))
+        self.wait()
+        
+        move_stack_and_load_randomly()
+        move_stack_and_load_randomly()
+        move_stack_and_load_randomly(phase=PI/2)
+
+        
+        # Делаем ровную стопку и равномерную нагрузку
+        ds = 4 * UP
+        n_above = 4
+        self.play(
+            LaggedStart(
+                *[b.animate
+                   .align_to(brick, LEFT)
+                   .shift(ds)
+                   .set_stroke(opacity=0.5*(1-i/n_above))
+                   for i,b in enumerate(stack[:n_above])
+                ],
+                lag_ratio=0.05
+            ),
+            LaggedStart(
+                *[FadeOut(b) for b in stack[n_above:]],
+                lag_ratio=0.05
+            ),
+            brick.animate.shift(ds),
+            load.animate.make_even(lmin=0.8).shift(ds)
+        )
+        self.wait()
+        
+        
+        #
+        ## Рассчитываем количество кирпичей
+        #
+        self.next_section('max_number_of_bricks', skip_animations=SceneExtension.skip(True))
+        
+        Group(
+            eq_sigma_0 := TexCyr(r'$\sigma = \text{давление}$'),
+            eq_sigma_1 := TexCyr(r'$\sigma = \dfrac{\text{сила тяжести N кирпичей}}{\text{площадь кирпича}}$'),
+            eq_sigma_2 := TexCyr(r'$\sigma = \dfrac{N\cdot mg}{l \cdot w}$'),
+            eq_sigma_3 := TexCyr(r'$N = \dfrac{\sigma \cdot l \cdot w}{mg}$'),
+            eq_sigma_4 := TexCyr(r'$N = \dfrac{30\cdot 10^6\, \text{Па}'
+                                 r'\cdot 0.25\, \text{м} \cdot 0.12\, \text{м}}'
+                                 r'{3.5\,\text{кг} \cdot 9.81\,\text{м/с}^2}$'),
+            eq_N_bricks := TexCyr(r'$N \approx 26\,212$ штук')
+        ).next_to(brick, DOWN).shift(2*DOWN)
+        
+        g_arrow = Arrow(UP, DOWN, color=RED_A).to_edge(LEFT, buff=LARGE_BUFF)
+        g_arrow.set_stroke(opacity=[1,0])
+        #g_txt = TexCyr(r'$g \approx 9.8 \dfrac{\text{м}}{\text{с}^2}$')
+        g_txt = TexCyr(r'$g \approx 9.81\, \text{м/с}^2$')
+        g_txt.scale(0.7).next_to(g_arrow, DOWN)
+        
+        self.play(Write(eq_sigma_0))
+        self.wait()
+        
+        self.play(
+            TransformMatchingShapes(eq_sigma_0, eq_sigma_1),
+            Succession(FadeIn(g_arrow, shift=DOWN), Write(g_txt)),
+            run_time=2
+        )
+        self.wait()
+        
+        self.play(TransformMatchingShapes(eq_sigma_1, eq_sigma_2), run_time=2)
+        self.wait()
+        
+        self.play(TransformMatchingShapes(eq_sigma_2, eq_sigma_3), run_time=2)
+        self.wait()
+        
+        self.play(TransformMatchingShapes(eq_sigma_3, eq_sigma_4), run_time=2)
+        self.wait()
+        
+        self.play(TransformMatchingShapes(eq_sigma_4, eq_N_bricks), run_time=2)
+        self.wait()
+        
+        self.play(
+            eq_N_bricks.animate.set(color=GOLD).scale(1.2),
+            ShowPassingFlashWithThinningStrokeWidth(
+                SurroundingRectangle(eq_N_bricks, color=GOLD_A).scale(1.2),
+                time_width=0.4),
+            run_time=2
+        )
+        self.wait()
+        
+        # Показываем высоту стопки
+        stack_br = Brace(VGroup(stack), RIGHT, color=BLUE).set_opacity(opacity=0.5)
+        
+        pre = eq_N_bricks.get_center()
+        new = eq_N_bricks.copy().scale(1/1.2).rotate(PI/2).next_to(stack_br, RIGHT).get_center()
+        mid = (new + pre) / 2
+        dmid = rotate_vector(new - mid, PI/2)
+        rotation_center = mid + dmid
+        
+        self.play(
+            FadeIn(stack_br, shift=LEFT),
+            Succession(
+                eq_N_bricks.animate.scale(1/1.2),
+                Rotate(eq_N_bricks, PI/2, about_point=rotation_center)
+            )
+        )
+        self.wait()
+        
+        #
+        ## Рассчитываем высоту и смещение
+        #
+        self.next_section('new_height_and_shift', skip_animations=SceneExtension.skip(False))
+
+        txt_scale = 0.6
+        grp_buff = LARGE_BUFF
+        in_buff = MED_SMALL_BUFF
+        
+        # Высота
+        txt_height = Text('Наибольшая высота башни', color=BLUE_A)
+        txt_height.scale(txt_scale).next_to(brick, DOWN, buff=grp_buff)
+        
+        Group(
+            eq_height_0 := TexCyr(r'$H = N\cdot h$'),
+            eq_height_1 := TexCyr(r'$H = 26\,212 \cdot 6.5\,\text{см}$'),
+            eq_height_2 := TexCyr(r'$H \approx 1.7$ км').set_color(GOLD)
+        ).next_to(txt_height, DOWN, buff=in_buff)
+        
+        self.play(FadeIn(txt_height, shift=DOWN), Write(eq_height_0))
+        self.wait()
+        
+        self.play(TransformMatchingShapes(eq_height_0, eq_height_1), run_time=2)
+        self.wait()
+        
+        self.play(TransformMatchingShapes(eq_height_1, eq_height_2), run_time=2)
+        self.wait()
+        
+        grp_height = VGroup(eq_height_2, txt_height)
+
+        
+        # Смещение
+        txt_shift = Text('Наибольшее смещение', color=BLUE_A)
+        txt_shift.scale(txt_scale).next_to(grp_height, DOWN, buff=grp_buff)
+        
+        Group(
+            eq_shift_0 := TexCyr(r'\[L = \dfrac{l}{2} \cdot \sum_{i=1}^{N}{\dfrac{1}{i}}\]'),
+            eq_shift_1 := TexCyr(r'\[L = \dfrac{25\,\text{см}}{2}\cdot \sum_{i=1}^{26\,212}{\dfrac{1}{i}}\]'),
+            eq_shift_2 := TexCyr(r'$L \approx 1.35$ м').set_color(GOLD)
+        ).next_to(txt_shift, DOWN, buff=in_buff)
+        # eq_shift_0.next_to(txt_shift, DOWN, buff=in_buff)
+        eq_shift_2.next_to(txt_shift, DOWN, buff=in_buff)
+        
+        self.play(FadeIn(txt_shift, shift=DOWN), Write(eq_shift_0))
+        self.wait()
+        
+        self.play(TransformMatchingShapes(eq_shift_0, eq_shift_1), run_time=2)
+        self.wait()
+        
+        self.play(TransformMatchingShapes(eq_shift_1, eq_shift_2), run_time=2)
+        self.wait()
+        
+        
+        
 
 
 #%%
@@ -450,6 +633,6 @@ if __name__ == '__main__':
     
     from helpers.render import dev_render
     
-    dev_render(__file__, TestArrows)
+    dev_render(__file__, PhysicalLimitation)
 
         
