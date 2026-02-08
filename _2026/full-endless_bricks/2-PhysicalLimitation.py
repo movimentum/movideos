@@ -380,7 +380,8 @@ class BrickBreak(ThreeDScene, SceneExtension):
         (90, 0, 1),     # Вид сбоку
         (60, 45, 1),    # Изометрический вид 1
         (120, -45, 1),  # Диагональный вид снизу
-        (70, 300, 0.7),    # Изометрический вид c меньшим масштабом
+        (70, 300, 0.7), # Изометрический вид c меньшим масштабом
+        (75, 150, 0.7),
     ]
     
     def construct(self):
@@ -581,7 +582,7 @@ class BrickBreak(ThreeDScene, SceneExtension):
         #
         ## Добавляем стопку сверху и визуализируем размеры
         #
-        self.next_section('Sizing', skip_animations=SceneExtension.skip(False))
+        self.next_section('Sizing', skip_animations=SceneExtension.skip(True))
         
         self.change_camera_view(5, wait=1)
         
@@ -604,7 +605,23 @@ class BrickBreak(ThreeDScene, SceneExtension):
         
         self.wait()
         
-        # Убираем старые размерности, добавляем новые
+        
+        #
+        ## Убираем старые размерности, добавляем новые
+        #
+        self.next_section('NewDimensions', skip_animations=SceneExtension.skip(False))
+        
+        self.stop_ambient_camera_rotation()
+        self.begin_ambient_camera_rotation(rate=0.05)
+        
+        # Вспомогательные линии
+        corner = bricks_above[-1].get_corner(UR + IN)
+        corner_projection = corner.copy()
+        corner_projection[2] = brick.get_critical_point(IN)[2]
+        vline = DashedLine(corner, corner_projection, color=BLUE_A, stroke_opacity=0.5)
+        overshoot_shadow = DashedLine(corner_projection, brick.get_corner(IN + UR), color=BLUE_A, stroke_opacity=0.5)
+
+        # Вынос стопки
         dim_stack_overshoot = Linear_Dimension(
             brick.get_right() * [1,1,0],
             bricks_above[-1].get_right() * [1,1,0],
@@ -613,19 +630,13 @@ class BrickBreak(ThreeDScene, SceneExtension):
             offset=1.5,
             outside_arrow=True,
             color=BLUE)
-        
         dim_stack_overshoot.set_opacity(0.5)
         dim_stack_overshoot.align_to(brick,IN).shift(UP)
         dim_stack_overshoot['text'].set_opacity(1.0)
         dim_stack_overshoot['arrow1'].scale(0.5)
         dim_stack_overshoot['arrow2'].scale(0.5)
         
-        corner = bricks_above[-1].get_corner(UR + IN)
-        corner_projection = corner.copy()
-        corner_projection[2] = brick.get_critical_point(IN)[2]
-        vline = DashedLine(corner, corner_projection, color=BLUE_A, stroke_opacity=0.5)
-        overshoot_shadow = DashedLine(corner_projection, brick.get_corner(IN + UR), color=BLUE_A, stroke_opacity=0.5)
-        
+        # Высота стопки
         dim_stack_height = Linear_Dimension(
             corner,
             corner_projection,
@@ -634,14 +645,11 @@ class BrickBreak(ThreeDScene, SceneExtension):
             offset=1.5,
             outside_arrow=True,
             color=BLUE)
-        
         dim_stack_height.set_opacity(0.5)
-        #dim_stack_height.align_to(brick,IN).shift(UP)
         dim_stack_height['text'].set_opacity(1.0)
         dim_stack_height['arrow1'].scale(0.5)
         dim_stack_height['arrow2'].scale(0.5)
         dim_stack_height['text'].rotate(PI/2, Y_AXIS).rotate(-PI/2, axis=Z_AXIS, about_point=dim_stack_height['arrow1'].get_center())
-        
         
         self.play(
             *[FadeOut(d) for d in (dimL,dimH,dimW)],
@@ -651,12 +659,19 @@ class BrickBreak(ThreeDScene, SceneExtension):
             Create(overshoot_shadow)
         )
         
-        self.stop_ambient_camera_rotation()
-        self.begin_ambient_camera_rotation(rate=0.05)
+        self.wait(5)
         
-        self.wait(20)
+        # Периодически меняем ракурсы
+        for _ in range(5):
+            self.camera_jump_during_ambient_rotation(
+                theta=self.camera.get_theta() + np.random.uniform(PI/6, PI/3),
+                phi = self.camera.get_phi()   + np.random.uniform(-PI/20, PI/20),
+                zoom = self.camera.get_zoom() + np.random.uniform(-0.1, 0.1),
+                new_rate=0.05,
+                run_time=0.5
+            )
+            self.wait(5)
         
-
         
         # Останавливаем вращение камеры
         self.stop_ambient_camera_rotation()
@@ -677,9 +692,7 @@ class BrickBreak(ThreeDScene, SceneExtension):
     
     
     def change_camera_view(self, i, run_time=2, wait=0.5):
-        
         phi, theta, zoom = self.camera_views[i]
-        
         self.move_camera(
             phi=phi * DEGREES,
             theta=theta * DEGREES,
@@ -687,9 +700,14 @@ class BrickBreak(ThreeDScene, SceneExtension):
             run_time=run_time,
             #frame_center=brick.get_center()
         )
-        
         if wait > 0:
             self.wait(wait)
+
+    
+    def camera_jump_during_ambient_rotation(self, new_rate, phi=None, theta=None, zoom=None, run_time=None):
+        self.stop_ambient_camera_rotation()
+        self.move_camera(phi=phi, theta=theta, zoom=zoom, run_time=run_time)
+        self.begin_ambient_camera_rotation(rate=new_rate)
     
     
     def draw_axes(self):
@@ -708,7 +726,7 @@ class BrickBreak(ThreeDScene, SceneExtension):
         
         self.play(Create(axes))
         self.wait(2)
-
+        
 
 #%% Тестовый рендер
 if __name__ == '__main__':
