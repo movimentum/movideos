@@ -380,6 +380,7 @@ class BrickBreak(ThreeDScene, SceneExtension):
         (90, 0, 1),     # Вид сбоку
         (60, 45, 1),    # Изометрический вид 1
         (120, -45, 1),  # Диагональный вид снизу
+        (70, 300, 0.7),    # Изометрический вид c меньшим масштабом
     ]
     
     def construct(self):
@@ -535,7 +536,7 @@ class BrickBreak(ThreeDScene, SceneExtension):
         #
         ## Размеры кирпича
         #
-        self.next_section('Sizing', skip_animations=SceneExtension.skip(False))
+        self.next_section('Sizing', skip_animations=SceneExtension.skip(True))
         
         self.play(brick.animate.shift(OUT))
         self.wait()
@@ -575,10 +576,91 @@ class BrickBreak(ThreeDScene, SceneExtension):
         self.change_camera_view(2, wait=5)
         self.change_camera_view(3, wait=5)
         self.change_camera_view(4, wait=5)
+        
+        
+        #
+        ## Добавляем стопку сверху и визуализируем размеры
+        #
+        self.next_section('Sizing', skip_animations=SceneExtension.skip(False))
+        
+        self.change_camera_view(5, wait=1)
+        
+        def stack_one_side(mobj, target):
+            mobj.next_to(target, OUT, buff=0).shift(np.random.uniform(0.4, 0.8) * RIGHT)
+            
+        n = 3
+        bricks_above = [
+            brick.copy().set_color(BLUE).set_fill(opacity=0.4).set_stroke(opacity=0.6)
+            for _ in range(n)]
+        
+        stack_one_side(bricks_above[0], brick)
+        [ stack_one_side(bricks_above[i], bricks_above[i-1])  for i in range(1, n) ]
+        
+        self.play(LaggedStart(
+            *[FadeIn(b, shift=IN) for b in bricks_above],
+            lag_ratio=0.5,
+            run_time=2
+        ))
+        
+        self.wait()
+        
+        # Убираем старые размерности, добавляем новые
+        dim_stack_overshoot = Linear_Dimension(
+            brick.get_right() * [1,1,0],
+            bricks_above[-1].get_right() * [1,1,0],
+            text=TexCyr(r'$L$'),#.scale(0.7),
+            direction=UP,
+            offset=1.5,
+            outside_arrow=True,
+            color=BLUE)
+        
+        dim_stack_overshoot.set_opacity(0.5)
+        dim_stack_overshoot.align_to(brick,IN).shift(UP)
+        dim_stack_overshoot['text'].set_opacity(1.0)
+        dim_stack_overshoot['arrow1'].scale(0.5)
+        dim_stack_overshoot['arrow2'].scale(0.5)
+        
+        corner = bricks_above[-1].get_corner(UR + IN)
+        corner_projection = corner.copy()
+        corner_projection[2] = brick.get_critical_point(IN)[2]
+        vline = DashedLine(corner, corner_projection, color=BLUE_A, stroke_opacity=0.5)
+        overshoot_shadow = DashedLine(corner_projection, brick.get_corner(IN + UR), color=BLUE_A, stroke_opacity=0.5)
+        
+        dim_stack_height = Linear_Dimension(
+            corner,
+            corner_projection,
+            text=TexCyr(r'$H$'),#.scale(0.7),
+            direction=RIGHT,
+            offset=1.5,
+            outside_arrow=True,
+            color=BLUE)
+        
+        dim_stack_height.set_opacity(0.5)
+        #dim_stack_height.align_to(brick,IN).shift(UP)
+        dim_stack_height['text'].set_opacity(1.0)
+        dim_stack_height['arrow1'].scale(0.5)
+        dim_stack_height['arrow2'].scale(0.5)
+        dim_stack_height['text'].rotate(PI/2, Y_AXIS).rotate(-PI/2, axis=Z_AXIS, about_point=dim_stack_height['arrow1'].get_center())
+        
+        
+        self.play(
+            *[FadeOut(d) for d in (dimL,dimH,dimW)],
+            FadeIn(dim_stack_overshoot),
+            FadeIn(dim_stack_height),
+            Create(vline),
+            Create(overshoot_shadow)
+        )
+        
+        self.stop_ambient_camera_rotation()
+        self.begin_ambient_camera_rotation(rate=0.05)
+        
+        self.wait(20)
+        
 
         
         # Останавливаем вращение камеры
         self.stop_ambient_camera_rotation()
+
         
 
     def make_brick(self, fill_params=(RED_D, 0.9), edge_params=(WHITE, 3.0)):
@@ -633,6 +715,6 @@ if __name__ == '__main__':
     
     from helpers.render import dev_render
     
-    dev_render(__file__, PhysicalLimitation)
+    dev_render(__file__, BrickBreak)
 
         
