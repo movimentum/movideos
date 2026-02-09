@@ -106,7 +106,7 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         ))
         self.wait()
         
-        
+ 
         # Визуализируем нагрузку
         load = DistributedLoad(
             brick.get_top()[1],
@@ -139,6 +139,11 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         
         self.play(Create(load))
         self.wait()
+        
+        [b.save_state() for b in stack] # сохраняем для будущего восстановления
+        load.save_state()               #
+        brick.save_state()              #
+        
         
         move_stack_and_load_randomly()
         move_stack_and_load_randomly()
@@ -242,7 +247,7 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         #
         ## Рассчитываем высоту и смещение
         #
-        self.next_section('new_height_and_shift', skip_animations=SceneExtension.skip(False))
+        self.next_section('new_height_and_shift', skip_animations=SceneExtension.skip(True))
 
         txt_scale = 0.6
         grp_buff = LARGE_BUFF
@@ -292,6 +297,75 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         self.wait()
         
         
+        #
+        ## Давление на край кирпича
+        #
+        self.next_section('pointed_pressure', skip_animations=SceneExtension.skip(False))
+        
+        eq_height_2.generate_target()
+        eq_shift_2.generate_target()
+        
+        eq_height_2.target.to_edge(UP)
+        eq_shift_2.target.next_to(eq_height_2.target, DOWN)
+        
+        grp_stack_brace = VGroup(stack_br, eq_N_bricks)
+        
+        
+        # Убираем ненужные элементы, временно затеняем нужные
+        self.play(
+            FadeOut(txt_shift, shift=UP*0.5),
+            FadeOut(txt_height, shift=UP*0.5),
+            FadeOut(g_txt, scale=0.5),
+            FadeOut(g_arrow, shift=DOWN),
+            *[Unwrite(eq) for eq in (density, mass, sigma)],
+            *[MoveToTarget(eq) for eq in (eq_height_2, eq_shift_2)],
+            grp_stack_brace.animate.scale(0.7).set_opacity(0.2).shift(RIGHT*0.5),
+            
+            run_time = 2
+        )
+        self.wait()
+        
+        self.play(
+            Restore(brick),
+            Restore(load),
+            *[Restore(b) for b in stack]
+        )
+        self.wait()
+        
+
+            
+        brick_shift = LEFT * 2    
+        brick.generate_target()
+        brick.target.shift(brick_shift)
+        
+        load.generate_target()
+        load.target.make_even()
+        load.target.shift(brick_shift)
+        
+        def ani_making_stack_harmonic(n):
+            """ Смещает кирпичи в стопке случайным образом и двигает нагрузку """
+            substack = stack[:n]
+            
+            for b in substack:
+                b.generate_target()
+                b.target.align_to(brick.target, LEFT)
+            
+            shifts = RIGHT.reshape(1,3) * np.cumsum([1/(n - i) for i in range(n)]).reshape(n,1)
+
+            *[b.target.shift(ds) for b,ds in zip(substack, shifts)],
+            
+            return LaggedStart(*[MoveToTarget(b) for b in substack], lag_ratio=0.1)
+        
+        self.play(
+            ani_making_stack_harmonic(len(stack)),
+            MoveToTarget(brick),
+            MoveToTarget(load)
+        )
+        self.wait()
+        
+        # @todo Нарисовать линию центра тяжести стопки сверху
+        # @todo Сосредоточить нагрузку
+        # @todo Отобразить на 3D область нагружения
         
 
 
@@ -733,6 +807,6 @@ if __name__ == '__main__':
     
     from helpers.render import dev_render
     
-    dev_render(__file__, BrickBreak)
+    dev_render(__file__, PhysicalLimitation)
 
         
