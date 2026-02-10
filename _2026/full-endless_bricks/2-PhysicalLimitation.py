@@ -300,7 +300,7 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         #
         ## Давление на край кирпича
         #
-        self.next_section('pointed_pressure', skip_animations=SceneExtension.skip(False))
+        self.next_section('pointed_pressure', skip_animations=SceneExtension.skip(True))
         
         eq_height_2.generate_target()
         eq_shift_2.generate_target()
@@ -363,10 +363,67 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         )
         self.wait()
         
-        # @todo Нарисовать линию центра тяжести стопки сверху
+        
+        # Линия центра тяжести
+        cm_start = brick.get_corner(UR) + UP * 0.1
+        cm_end = cm_start.copy()
+        cm_end[1] = stack[-1].get_top()[1] + 0.2
+        cm_line = DashedLine(cm_start, cm_end, color=YELLOW, stroke_opacity=0.5)
+        
+        self.play(Succession(
+            Create(cm_line),
+            Wait(2),
+            FadeOut(cm_line, scale=1.5)
+        ))
+        self.wait()
+        
+        
+        # Нагрузка на край 
+        right = brick.get_right()[0]
+        left = 0.13 * brick.get_left()[0] + 0.87 * right  # как подоходный налог забрали
+        self.play(load.animate.expand_over_x(left, right, 8))
+        self.wait()
+        
+        txt_new_area = MathTex(r"\sim 1\% \cdot l\cdot w").scale(0.7).next_to(load, LEFT)
+        self.play(Write(txt_new_area))
+        self.wait()
+        
+        
+        #
+        ## Пересчёт количества кирпичей
+        #
+        self.next_section('reassessment', skip_animations=SceneExtension.skip(False))
+        
+        eq_N_old = MathTex(r'N ', r'= {\sigma\cdot', r'l \cdot w', r' \over mg}')
+        eq_N_new = MathTex(r'{N ', r'\over 100}', r'= {\sigma\cdot', r'{l \cdot w', r' \over 100}', r' \over mg}')
+        
+        eq_N_old.next_to(brick, RIGHT)
+        eq_N_new.next_to(brick, RIGHT)
+        
+        self.play(Write(eq_N_old))
+        self.wait()
+        
+        src = (0,1,2,3)
+        dst = (0,2,3,5)
+        self.play(
+            *[ReplacementTransform(eq_N_old[i], eq_N_new[j]) for i,j in zip(src,dst)],
+            FadeIn(eq_N_new[1], scale=0.2),
+            FadeIn(eq_N_new[4], scale=0.2)
+        )
+        self.wait()
+        
+        self.play(Succession(
+            Indicate(eq_N_new[:2]),
+            eq_N_new[:2].animate.set_color(GOLD)
+        ))
+        self.wait()
+        
+        
+        
         # @todo Сосредоточить нагрузку
         # @todo Отобразить на 3D область нагружения
         
+       
 
 
 #%%
@@ -380,10 +437,28 @@ class DistributedLoad(VGroup):
         self.right = right
 
         self.phase = 0        
+        self.ampl = 0.3
+        self.lmin = 0.7
+        self.num = 15  # количество стрелок
         self.reconstruct_sin_wave(ampl=0)
         
     
-    def reconstruct_sin_wave(self, phase=None, lmin=0.7, ampl=0.3, num_arrows=15):
+    def reconstruct_sin_wave(self, phase=None, lmin=None, ampl=None, num_arrows=None):
+        
+        if not num_arrows:
+            num_arrows = self.num
+        else:
+            self.num = num_arrows
+        
+        if not lmin:
+            lmin = self.lmin
+        else:
+            self.lmin = lmin
+        
+        if not ampl:
+            ampl = self.ampl
+        else:
+            self.ampl = ampl
         
         if not phase:
             phase = self.phase
@@ -408,12 +483,23 @@ class DistributedLoad(VGroup):
                 buff=SMALL_BUFF
             )
             arrows.add(arrow)
+        self.is_even = False
         self.become(arrows)
+    
+    
+    def expand_over_x(self, left, right, num_arrows):
+        """ Распределяет текущую нагрузку от start до end """
+        self.left = left
+        self.right = right
+        self.num = num_arrows
+        self.reconstruct_sin_wave()
 
 
     def make_even(self, lmin=0.7):
         self.phase = 0
-        self.reconstruct_sin_wave(lmin=lmin, ampl=0)
+        self.ampl = 0
+        self.lmin = lmin
+        self.reconstruct_sin_wave()
     
 
 class TestDistributedLoadArrows(Scene, SceneExtension):
