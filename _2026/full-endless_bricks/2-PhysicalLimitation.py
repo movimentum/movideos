@@ -319,7 +319,7 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
             FadeOut(g_arrow, shift=DOWN),
             *[Unwrite(eq) for eq in (density, mass, sigma)],
             *[MoveToTarget(eq) for eq in (eq_height_2, eq_shift_2)],
-            grp_stack_brace.animate.scale(0.7).set_opacity(0.2).shift(RIGHT*0.5),
+            grp_stack_brace.animate.scale(0.7).set_opacity(0.2).shift(RIGHT*0.7 + DOWN),
             
             run_time = 2
         )
@@ -342,15 +342,19 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         load.target.make_even()
         load.target.shift(brick_shift)
         
-        def ani_making_stack_harmonic(n):
-            """ Смещает кирпичи в стопке случайным образом и двигает нагрузку """
+        def ani_making_stack_harmonic(n, scale_shift=1):
+            """ Смещает кирпичи в стопке гармонически """
             substack = stack[:n]
             
             for b in substack:
                 b.generate_target()
-                b.target.align_to(brick.target, LEFT)
+                #b.target.align_to(brick.target, LEFT)
+            
+            substack[0].target.next_to(brick.target, UP, buff=0).align_to(brick.target, LEFT)
+            [substack[i].target.next_to(substack[i-1].target, UP, buff=0).align_to(brick.target, LEFT) for i in range(1,n)]
             
             shifts = RIGHT.reshape(1,3) * np.cumsum([1/(n - i) for i in range(n)]).reshape(n,1)
+            shifts *= scale_shift * w / 2
 
             *[b.target.shift(ds) for b,ds in zip(substack, shifts)],
             
@@ -419,8 +423,47 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         self.wait()
         
         
+        stack_out = [stack.pop() for _ in range(4)]
         
-        # @todo Сосредоточить нагрузку
+        brick_shift = 2 * UP
+        brick.generate_target()
+        load.generate_target()
+        
+        
+        brick.target.shift(brick_shift)
+        load.target.shift(brick_shift)
+        
+        
+        self.play(
+            *[FadeOut(s) for s in stack_out],
+            ani_making_stack_harmonic(len(stack)),
+            MoveToTarget(brick),
+            MoveToTarget(load),
+            FadeOut(txt_new_area, scale=0.5)
+        )
+        self.wait()
+        
+        stack_brace_2 = Brace(VGroup(stack), RIGHT, color=BLUE).set_opacity(opacity=0.5)
+        eq_N_bricks_2 = TexCyr(r'$N \approx 262$ штук', r'и').rotate(PI/2).next_to(stack_brace_2, RIGHT, buff=SMALL_BUFF)
+        grp_stack_brace_2 = VGroup(stack_brace_2, eq_N_bricks_2[0])
+        
+        eq_height_3 = TexCyr(r'$H \approx 17$ м').scale(1.2).set_color(GOLD)
+        eq_shift_3 = TexCyr(r'$L \approx 77$ см').scale(1.2).set_color(GOLD).next_to(eq_height_3, DOWN)
+        VGroup(eq_height_3, eq_shift_3).next_to(VGroup(stack), UP, buff=MED_LARGE_BUFF)
+        
+        self.play(Succession(
+            TransformMatchingShapes(grp_stack_brace, grp_stack_brace_2),
+            FadeIn(eq_N_bricks_2[1], shift=DOWN),
+        ))
+        self.wait()
+        
+        self.play(LaggedStart(
+            TransformMatchingShapes(eq_height_2, eq_height_3),
+            TransformMatchingShapes(eq_shift_2, eq_shift_3)
+        ))
+        self.wait()
+        
+        # @todo Финальные размеры привести на нужных линиях, убрать количество кирпичей, формулу тоже
         # @todo Отобразить на 3D область нагружения
         
        
