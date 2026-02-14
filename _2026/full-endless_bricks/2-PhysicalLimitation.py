@@ -635,7 +635,7 @@ class BrickBreak(ThreeDScene, SceneExtension):
         self.next_section('begining', skip_animations=SceneExtension.skip(True))
         
         # Исходный кирпич
-        brick = self.make_brick().shift(IN)
+        brick = self.make_brick().shift(IN*2)
 
         # Кирпичи сверху (n штук), сдвинутые случайным образом
         n = 6
@@ -644,7 +644,7 @@ class BrickBreak(ThreeDScene, SceneExtension):
             mobj.next_to(target, OUT, buff=0).shift(np.random.uniform(-1,1) * RIGHT)
         
         bricks_above = [
-            brick.copy().set_color(BLUE).set_stroke(opacity=0.2)
+            brick.copy().set_color(BLUE).set_opacity(0.5).set_stroke(opacity=0.5)
             for _ in range(n)]
         
         stack(bricks_above[0], brick)
@@ -774,7 +774,7 @@ class BrickBreak(ThreeDScene, SceneExtension):
         #
         self.next_section('Sizing', skip_animations=SceneExtension.skip(True))
         
-        self.play(brick.animate.shift(OUT))
+        self.play(brick.animate.shift(OUT*2))
         self.wait()
         
         def make_dim(start, end, direction, align_direction, text,
