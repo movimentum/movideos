@@ -20,10 +20,7 @@ np.random.seed(0xDEADBEEF)
 #%% Расчёт наибольшей нагрузки
 class PhysicalLimitation(MovingCameraScene, SceneExtension):
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        SceneExtension.video_orientation = 'portrait'
-    
+    video_orientation = 'portrait'
     
     def construct(self):
 
@@ -602,9 +599,8 @@ class TestDistributedLoadArrows(Scene, SceneExtension):
 #%% Кирпич с размерами
 class BrickBreak(ThreeDScene, SceneExtension):
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        SceneExtension.video_orientation = 'landscape'
+    video_orientation = 'landscape'
+        
     
     dimensions = 3, 2, 1  # длина, ширина, высота кирпича
     n_parts = 4, 3, 2  # количество осколков по длине, ширине, высоте
