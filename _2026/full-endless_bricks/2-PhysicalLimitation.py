@@ -305,10 +305,11 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         eq_height_2.generate_target()
         eq_shift_2.generate_target()
         
-        eq_height_2.target.to_edge(UP)
-        eq_shift_2.target.next_to(eq_height_2.target, DOWN)
+        eq_height_2.target.to_edge(UP).set_opacity(0.2)
+        eq_shift_2.target.next_to(eq_height_2.target, DOWN).set_opacity(0.2)
         
         grp_stack_brace = VGroup(stack_br, eq_N_bricks)
+
         
         
         # Убираем ненужные элементы, временно затеняем нужные
@@ -416,16 +417,10 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         )
         self.wait()
         
-        self.play(Succession(
-            Indicate(eq_N_new[:2]),
-            eq_N_new[:2].animate.set_color(GOLD)
-        ))
-        self.wait()
+  
+        stack_out = [stack.pop() for _ in range(3)]
         
-        
-        stack_out = [stack.pop() for _ in range(4)]
-        
-        brick_shift = 2 * UP
+        brick_shift = 2 * UP + 0.3 * LEFT
         brick.generate_target()
         load.generate_target()
         
@@ -439,35 +434,73 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
             ani_making_stack_harmonic(len(stack)),
             MoveToTarget(brick),
             MoveToTarget(load),
-            FadeOut(txt_new_area, scale=0.5)
+            FadeOut(txt_new_area, scale=0.5),
+            eq_N_new[:2].animate
+                .scale(1.2)
+                .set_color(GOLD)
+                .next_to(brick.target, RIGHT)
+                .shift(2*UR+0.5*LEFT),
+            FadeOut(eq_N_new[2:], shift=DOWN)
         )
         self.wait()
         
+        
         stack_brace_2 = Brace(VGroup(stack), RIGHT, color=BLUE).set_opacity(opacity=0.5)
-        eq_N_bricks_2 = TexCyr(r'$N \approx 262$ штук', r'и').rotate(PI/2).next_to(stack_brace_2, RIGHT, buff=SMALL_BUFF)
-        grp_stack_brace_2 = VGroup(stack_brace_2, eq_N_bricks_2[0])
+        eq_N_bricks_2 = TexCyr(r'$N \approx~$', '$262$', ' штук', r'и').rotate(PI/2).next_to(stack_brace_2, RIGHT, buff=SMALL_BUFF)
+        eq_N_bricks_2.set_color(BLUE_A)
+        grp_stack_brace_2 = VGroup(stack_brace_2, eq_N_bricks_2[:-1])
         
-        eq_height_3 = TexCyr(r'$H \approx 17$ м').scale(1.2).set_color(GOLD)
-        eq_shift_3 = TexCyr(r'$L \approx 77$ см').scale(1.2).set_color(GOLD).next_to(eq_height_3, DOWN)
-        VGroup(eq_height_3, eq_shift_3).next_to(VGroup(stack), UP, buff=MED_LARGE_BUFF)
         
-        self.play(Succession(
-            TransformMatchingShapes(grp_stack_brace, grp_stack_brace_2),
-            FadeIn(eq_N_bricks_2[1], shift=DOWN),
-        ))
-        self.wait()
+        brace_line = DashedLine(stack[0].get_corner(DR), stack_brace_2.get_corner(DL))
+        brace_line.set_opacity(0.5).set_color(BLUE_A)
         
         self.play(LaggedStart(
-            TransformMatchingShapes(eq_height_2, eq_height_3),
-            TransformMatchingShapes(eq_shift_2, eq_shift_3)
+            Create(brace_line),
+            ReplacementTransform(stack_br, stack_brace_2),
+            TransformMatchingShapes(eq_N_bricks, eq_N_bricks_2[:-1]),
+            FadeIn(eq_N_bricks_2[-1], shift=DOWN),
+            lag_ratio=0.2
         ))
         self.wait()
         
-        # @todo Финальные размеры привести на нужных линиях, убрать количество кирпичей, формулу тоже
-        # @todo Отобразить на 3D область нагружения
+        self.play(
+            ShowPassingFlashWithThinningStrokeWidth(
+                SurroundingRectangle(eq_N_bricks_2[1], color=GOLD_A).scale(1.2),
+                time_width=0.4),
+            ShowPassingFlashWithThinningStrokeWidth(
+                SurroundingRectangle(eq_N_new[:2], color=GOLD_A).scale(1.2),
+                time_width=0.4),
+        )
+        self.wait()
         
-       
-
+        self.play(FadeOut(eq_N_new[:2], scale=0.5))
+        self.wait()
+        
+        
+        eq_height_3 = TexCyr(r'$H \approx 17$ м').set_color(GOLD)
+        eq_shift_3 = TexCyr(r'$L \approx 77$ см').set_color(GOLD)
+        
+        eq_shift_3.next_to(brace_line, UP)
+        eq_height_3.rotate(PI/2).next_to(stack_brace_2, LEFT).shift(DOWN*h*0.35)
+        
+        self.play(Succession(
+            AnimationGroup(
+                eq_height_2.animate.set_opacity(1),
+                eq_shift_2.animate.set_opacity(1),
+            ),
+            LaggedStart(
+                FadeOut(eq_height_2, shift=LEFT),
+                FadeIn(eq_height_3, shift=RIGHT),
+                lag_ratio=0.2
+            ),
+            LaggedStart(
+                FadeOut(eq_shift_2, shift=RIGHT),
+                FadeIn(eq_shift_3, shift=DOWN),
+                lag_ratio=0.2
+            ),
+        ))
+        self.wait()
+        
 
 #%%
 class DistributedLoad(VGroup):
@@ -543,7 +576,7 @@ class DistributedLoad(VGroup):
         self.ampl = 0
         self.lmin = lmin
         self.reconstruct_sin_wave()
-    
+   
 
 class TestDistributedLoadArrows(Scene, SceneExtension):
     def construct(self):
