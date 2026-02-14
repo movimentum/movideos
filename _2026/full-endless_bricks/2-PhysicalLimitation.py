@@ -660,7 +660,6 @@ class BrickBreak(ThreeDScene, SceneExtension):
         ))
         
         self.wait()
-        
 
         #
         ## Осколки
@@ -845,7 +844,7 @@ class BrickBreak(ThreeDScene, SceneExtension):
         #
         ## Убираем старые размерности, добавляем новые
         #
-        self.next_section('NewDimensions', skip_animations=SceneExtension.skip(False))
+        self.next_section('NewDimensions', skip_animations=SceneExtension.skip(True))
         
         self.stop_ambient_camera_rotation()
         self.begin_ambient_camera_rotation(rate=0.05)
@@ -896,6 +895,32 @@ class BrickBreak(ThreeDScene, SceneExtension):
         )
         
         self.wait(5)
+        
+        # @todo Подогнать смену ракурсов по длительности перед визуализацией зоны нагрузки
+        # Периодически меняем ракурсы
+        for _ in range(5):
+            self.camera_jump_during_ambient_rotation(
+                theta=self.camera.get_theta() + np.random.uniform(PI/6, PI/3),
+                phi = self.camera.get_phi()   + np.random.uniform(-PI/20, PI/20),
+                zoom = self.camera.get_zoom() + np.random.uniform(-0.1, 0.1),
+                new_rate=0.05,
+                run_time=0.5
+            )
+            self.wait(5)
+        
+        
+        #
+        ## Визуализация локализованной зоны нагрузки
+        #
+        self.next_section('LoadLocalized', skip_animations=SceneExtension.skip(False))
+        
+        
+        area = brick[1].copy().stretch(0.15, dim=0, about_edge=RIGHT)
+        params = dict(offset=0.1, stroke_color=YELLOW, stroke_width=1)
+        hatch1 = Hatch_lines(area, angle=PI/4, **params)
+        hatch2 = Hatch_lines(area, angle=PI/4 + PI/2, **params)
+        self.play(Create(hatch1), Create(hatch2))
+        self.wait()
         
         # Периодически меняем ракурсы
         for _ in range(5):
@@ -969,6 +994,6 @@ if __name__ == '__main__':
     
     from helpers.render import dev_render
     
-    dev_render(__file__, PhysicalLimitation)
+    dev_render(__file__, BrickBreak)
 
         
