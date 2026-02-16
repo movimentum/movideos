@@ -7,13 +7,7 @@ from manim import *
 
 from movi_ext import *
 
-
-#%% Импортируем вторую сцену как модуль
-#   @todo Импортировать BrickBreak из нормально названного модуля
-import importlib
-spec = importlib.util.spec_from_file_location("physlim", "2-PhysicalLimitation.py")
-physlim = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(physlim)
+from brick_break import BrickBreak
 
 
 #%%
@@ -23,7 +17,7 @@ np.random.seed(0xDEADBEEF)
 
 
 #%%
-class Conclusion(physlim.BrickBreak):
+class Conclusion(BrickBreak):
     
     def construct(self):
         
