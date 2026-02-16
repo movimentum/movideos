@@ -1,7 +1,16 @@
+import sys
+
 from helpers.render import prod_render
 
 
-fpath = '_2023/shorts-epi_pie/epi_pie.py'
-sname = 'EPiOrPiE'
+#%% Пути
+root = '_2026/full-endless_bricks'
+fn = '2-PhysicalLimitation.py'
+sname = 'BrickBreak'
+
+
+#%% Рендерим
+sys.path.append(root)
+fpath = f'{root}/{fn}'
 
 prod_render(fpath, sname, preview=False, render_all_sections=True)
