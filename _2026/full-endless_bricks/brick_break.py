@@ -42,9 +42,9 @@ class BrickBreak(ThreeDScene, SceneExtension):
         self.set_camera_orientation(phi=60*DEGREES, theta=45*DEGREES, zoom=1)
         
         
-        #
-        ## Основной кирпич и его ноша
-        #
+        ################################
+        ## Основной кирпич и его ноша ##
+        ################################
         self.next_section('begining', skip_animations=SceneExtension.skip(True))
         
         # Исходный кирпич
@@ -71,12 +71,11 @@ class BrickBreak(ThreeDScene, SceneExtension):
             lag_ratio=0.5,
             run_time=2
         ))
-        
         self.wait()
 
-        #
-        ## Осколки
-        #
+        #############
+        ## Осколки ##
+        #############
         self.next_section('disassembling', skip_animations=SceneExtension.skip(True))
         
         dl, dw, dh = l/nl, w/nw, h/nh
@@ -119,13 +118,12 @@ class BrickBreak(ThreeDScene, SceneExtension):
             FadeIn(pieces),
             run_time=1.5
         )
-        
         self.wait()
 
         
-        #
-        ## Разлёт осколков
-        #
+        #####################
+        ## Разлёт осколков ##
+        #####################
         explosion_force = 6
         
         directions  = np.random.uniform(-1, 1, size=(len(pieces),3))
@@ -159,9 +157,9 @@ class BrickBreak(ThreeDScene, SceneExtension):
         self.wait(4)
         
 
-        #
-        ## Восстановление кирпича
-        #
+        ############################
+        ## Восстановление кирпича ##
+        ############################
         self.next_section('reassembling', skip_animations=SceneExtension.skip(True))
         
         self.play(
@@ -182,14 +180,15 @@ class BrickBreak(ThreeDScene, SceneExtension):
         self.wait()
         
         
-        #
-        ## Размеры кирпича
-        #
+        #####################
+        ## Размеры кирпича ##
+        #####################
         self.next_section('Sizing', skip_animations=SceneExtension.skip(True))
         
         self.play(brick.animate.shift(OUT*2))
         self.wait()
         
+        # Рисуем размеры кирпича
         def make_dim(start, end, direction, align_direction, text,
                      text_scale=0.7, arrow_scale=0.5, offset=1.5):
             dim = Linear_Dimension(brick.get_critical_point(start),
@@ -220,6 +219,8 @@ class BrickBreak(ThreeDScene, SceneExtension):
         )
         self.wait(2)
         
+        
+        # Простой: меняем несколько раз позицию камеры
         self.change_camera_view(0, wait=5)
         self.change_camera_view(1, wait=5)
         self.change_camera_view(2, wait=5)
@@ -227,9 +228,9 @@ class BrickBreak(ThreeDScene, SceneExtension):
         self.change_camera_view(4, wait=5)
         
         
-        #
-        ## Добавляем стопку сверху и визуализируем размеры
-        #
+        #####################################################
+        ## Добавляем стопку сверху и визуализируем размеры ##
+        #####################################################
         self.next_section('Sizing', skip_animations=SceneExtension.skip(True))
         
         self.change_camera_view(5, wait=1)
@@ -250,13 +251,12 @@ class BrickBreak(ThreeDScene, SceneExtension):
             lag_ratio=0.5,
             run_time=2
         ))
-        
         self.wait()
         
         
-        #
-        ## Убираем старые размерности, добавляем новые
-        #
+        #################################################
+        ## Убираем старые размерности, добавляем новые ##
+        #################################################
         self.next_section('NewDimensions', skip_animations=SceneExtension.skip(True))
         
         self.stop_ambient_camera_rotation()
@@ -306,7 +306,6 @@ class BrickBreak(ThreeDScene, SceneExtension):
             Create(vline),
             Create(overshoot_shadow)
         )
-        
         self.wait(5)
         
         # @todo Подогнать смену ракурсов по длительности перед визуализацией зоны нагрузки
@@ -322,11 +321,10 @@ class BrickBreak(ThreeDScene, SceneExtension):
             self.wait(5)
         
         
-        #
-        ## Визуализация локализованной зоны нагрузки
-        #
+        ###############################################
+        ## Визуализация локализованной зоны нагрузки ##
+        ###############################################
         self.next_section('LoadLocalized', skip_animations=SceneExtension.skip(False))
-        
         
         area = brick[1].copy().stretch(0.15, dim=0, about_edge=RIGHT)
         params = dict(offset=0.1, stroke_color=YELLOW, stroke_width=1)
@@ -346,11 +344,9 @@ class BrickBreak(ThreeDScene, SceneExtension):
             )
             self.wait(5)
         
-        
         # Останавливаем вращение камеры
         self.stop_ambient_camera_rotation()
 
-        
 
     def make_brick(self, fill_params=(RED_D, 0.9), edge_params=(WHITE, 3.0)):
         """ Создаёт кирпич """

@@ -9,7 +9,6 @@ from manim import *
 from movi_ext import *
 
 
-
 #%%
 SceneExtension.video_orientation = 'landscape'
 
@@ -20,15 +19,15 @@ np.random.seed(0xDEADBEEF)
 class Introduction(MovingCameraScene, SceneExtension):
     def construct(self):
         
+        # Запускаем фон
         shapes = BGSimpleShapes()
         self.play(shapes.fadein())
-        
         shapes.start_swinging()
         
-        
         self.camera.frame.save_state()
+
         
-        # Строим сцену
+        # Строим стену
         wall = BrickWall(rows=8, cols=10)
         
         brace_H = Brace(wall, RIGHT)
@@ -36,22 +35,23 @@ class Introduction(MovingCameraScene, SceneExtension):
         grp_H = VGroup(brace_H, label_H).set_color(BLUE)
         
         self.play(Create(wall))
-                
         self.play(FadeIn(grp_H, shift=LEFT, scale=0.5))
-        
         self.wait()
         
+        # Наклонить голову на бок?
         grp = VGroup(wall, grp_H)
         self.play(
             Rotate(grp, -PI/2),
             self.camera.frame.animate.set(height=1.1*grp.get_width())
         )
+        self.wait()
         
         brace_L = Brace(wall, LEFT)
         label_L = MathTex('l \\rightarrow max ?').rotate(-PI/2).next_to(brace_L, LEFT)
         grp_L = VGroup(brace_L, label_L).set_color(BLUE)
         
         self.play(FadeIn(grp_L, shift=UP, scale=0.5))
+        self.wait()
         
         grp.add(grp_L)
         
@@ -59,9 +59,9 @@ class Introduction(MovingCameraScene, SceneExtension):
             Rotate(grp, PI/2),
             Restore(self.camera.frame)
         )
-            
-        
-        
+        self.wait()
+
+        # Разбираем стену, оставляем один столбец
         self.play(LaggedStart(
             *[FadeOut(wall.get_brick_at(col,row), shift=UR * (np.random.rand(3) - [0.5,0.5,0]))
               for row in range(8) for col in range(10)
@@ -71,44 +71,37 @@ class Introduction(MovingCameraScene, SceneExtension):
             Unwrite(grp_H),
             Unwrite(grp_L),
         )
-        
         self.wait()
 
-        
-        # Заменяем стену на стопку
+        # Заменяем стену на новую стопку кирпичей, смещённых вправо
         brick = wall.get_brick_at(3,0)
         stack = BrickWall(rows=8, cols=1).align_to(brick, DL)
-        
         self.remove(*wall.brick_objects)
         self.add(stack)
-        
-        
+
         self.play(LaggedStart(*[FadeOut(
             brick,
             shift=2.0*RIGHT*(np.random.rand(3)-[0.5,0.5,0])) for brick in stack],
             lag_ratio=0.01
         ))
-        
         self.wait()
-        
+
         self.play(LaggedStart(
             *[FadeIn(brick, shift=DOWN) for brick in stack],
             lag_ratio=0.5
         ))
-        
         self.wait()
         
         stack.animate_bricks_random_shift_right(scene=self)
         
         
-        #############
-        
+        # Смещаем стопку и вместе с ней двигаем размер свеса
         brace_frozen = BraceBetweenPoints(
             stack.brick_objects[0].get_critical_point(RIGHT),
             stack.brick_objects[-1].get_critical_point(RIGHT),
             direction=DOWN
         )
-        
+
         label_frozen = MathTex('L').next_to(brace_frozen, DOWN)
 
         dashed_line_frozen = DashedLine(
@@ -116,26 +109,22 @@ class Introduction(MovingCameraScene, SceneExtension):
             brace_frozen.get_corner(UR),
             color=GRAY
         )
-        
-        
+
         self.play(
             Write(brace_frozen),
             Write(label_frozen),
             Create(dashed_line_frozen)
         )
-        
         self.wait()
         
-        brace = always_redraw(lambda:
-            BraceBetweenPoints(
-                stack.brick_objects[0].get_critical_point(RIGHT),
-                stack.brick_objects[-1].get_critical_point(RIGHT),
-                direction=DOWN
-            )
-        )
-        label = always_redraw(lambda:
-            MathTex('L').next_to(brace, DOWN)
-        )
+        brace = always_redraw(lambda: BraceBetweenPoints(
+            stack.brick_objects[0].get_critical_point(RIGHT),
+            stack.brick_objects[-1].get_critical_point(RIGHT),
+            direction=DOWN
+        ))
+
+        label = always_redraw(lambda: MathTex('L').next_to(brace, DOWN))
+        
         dashed_line = always_redraw(lambda: DashedLine(
             stack.brick_objects[-1].get_corner(DR),
             brace.get_corner(UR),
@@ -145,12 +134,12 @@ class Introduction(MovingCameraScene, SceneExtension):
         self.remove(brace_frozen, label_frozen, dashed_line_frozen)        
         self.add(brace, label, dashed_line)
         
-
-        # Двигаем стопку кирпичей
+        # То самое место, где стопка двигается
         for _ in range(4):
             stack.animate_bricks_random_shift_right(scene=self)
         
         
+        # Готовим вопрос о наибольшем свесе
         frozen_label = label.copy()
         self.remove(label)
         self.add(frozen_label)
@@ -160,10 +149,10 @@ class Introduction(MovingCameraScene, SceneExtension):
             *[ReplacementTransform(frozen_label, new_label[0]),Write(new_label[1])],
             lag_ratio=0.4
         ))
-        
         self.wait()
         
-        ### Вопросики сыпятся
+        
+        # Вопросики сыпятся
         n = 40
         positions  = np.random.rand(n, 3) - 0.5
         positions *= [12,6,0] 
@@ -176,13 +165,11 @@ class Introduction(MovingCameraScene, SceneExtension):
             *[GrowFromCenter(q_mark) for q_mark in q_marks],
             lag_ratio=0.05
         ))
-        
-
         self.wait()
         
         
+        # Завершаем введение
         shapes.stop_swinging()
-        
 
         ani_g0 = AnimationGroup(
             FadeOut(new_label, shift=DOWN),
@@ -211,6 +198,7 @@ class Introduction(MovingCameraScene, SceneExtension):
         self.wait()
 
 
+#%% Стена из кирпичей
 class BrickWall(VMobject):
     def __init__(
         self,
@@ -363,6 +351,7 @@ class BrickWall(VMobject):
                 return (i, j)
         
         return None
+
     
     def animate_bricks_random_shift_right(self, max_displacement=0.8, scene=None):
         """ Возвращает столбец из кирпичей """
@@ -377,20 +366,12 @@ class BrickWall(VMobject):
         base_brick = self.brick_objects[0]
         
         for shift, brick in zip(displacements, self.brick_objects):
-            
             ani = brick.animate.align_to(base_brick, LEFT).shift(shift * RIGHT)
-            
             animations.append(ani)
         
         scene.play(*animations)
             
             
-
-                
-                
-        
-
-
 #%% Тестовый рендер
 if __name__ == '__main__':
     

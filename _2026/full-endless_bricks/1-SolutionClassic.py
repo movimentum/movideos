@@ -5,10 +5,9 @@
 import numpy as np
 
 from manim import *
+from manim_cad_drawing_utils import *
 
 from movi_ext import *
-
-from manim_cad_drawing_utils import *
 
 
 #%%
@@ -24,14 +23,14 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
     
     def construct(self):
 
-        #
-        ## Начало
-        #
+        ############
+        ## Начало ##
+        ############
         self.next_section('begining', skip_animations=SceneExtension.skip(True))
         
         n = 4
-        h = (4 - 1) / n * 2
-        w = 8 * h
+        h = (4 - 1) / n * 2  # высота кирпича
+        w = 8 * h  # ширина кирпича
         self.width = w
         self.height = h
         self.stroke_width = 5
@@ -42,8 +41,7 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         self.r_base = r_base
         self.add(r_base)
         #self.play(self.camera.auto_zoom(r_base.target, margin=1))
-        
-        
+
         self.rects = [r_base]
         self.lines = [Line(r_base.target.get_corner(DL),
                            r_base.target.get_corner(DL))]
@@ -84,11 +82,10 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         self.wait()
 
 
-        #
-        ## Если верхний немного подвинуть, опрокинется
-        #
+        #################################################
+        ## Если верхний немного подвинуть, опрокинется ##
+        #################################################
         self.next_section('instability', skip_animations=SceneExtension.skip(True))
-        
         
         grp = VGroup(r_base, new_lines[0])
         grp.save_state()
@@ -107,9 +104,9 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         self.wait()
         
 
-        #
-        ## Добавляем больше кирпичей
-        #
+        ###############################
+        ## Добавляем больше кирпичей ##
+        ###############################
         self.next_section('add_more', skip_animations=SceneExtension.skip(True))
 
         for i in range(3):
@@ -127,9 +124,9 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
             self.wait()
 
 
-        #
-        ## Пять кирпичей = верхний выступает за край нижнего
-        #
+        #######################################################
+        ## Пять кирпичей = верхний выступает за край нижнего ##
+        #######################################################
         self.next_section('overshoot', skip_animations=SceneExtension.skip(True))
         
         [rect.save_state() for rect in self.rects]
@@ -139,7 +136,6 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         #               0              1         2            3             4    5               6      7             8     9              10
         sum1 = MathTex('{L \\over 2}', '\\cdot', '\\left(', '{1 \\over 1}', '+', '{1 \\over 2}', '+', '{1 \\over 3}', '+', '{1 \\over 4}', '\\right)')
         sum1.next_to(self.rects[-1], RIGHT).shift(2*RIGHT)
-        #self.play(Write(sum1))
         
         remaining = (1,2,4,6,8,10)
         
@@ -157,7 +153,6 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         )
         self.wait()
         
-       
         self.play(
             LaggedStart(
                 ShowPassingFlashWithThinningStrokeWidth(
@@ -193,16 +188,14 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
             FadeIn(sum4[-2:], shift=LEFT)
         ))
         
-
+        # Визуализируем центр тяжести
         vline = DashedLine(5 * DOWN, 5 * UP, color=BLUE).move_to(
             Group(self.rects[-1], self.rects[0]).get_center()
         )
         
         self.play(
-            #FadeIn(vline, shift=2*UP),
             Write(vline),
             Indicate(sum4),
-            #rate_func=there_and_back,
             run_time=2
         )
         self.wait()
@@ -219,9 +212,9 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         self.wait()
         
         
-        #
-        ## Добавляем больше кирпичей
-        #
+        ###############################
+        ## Добавляем больше кирпичей ##
+        ###############################
         self.next_section('add_more_bricks', skip_animations=SceneExtension.skip(True))
                         
         for i in range(3):
@@ -238,7 +231,6 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
             *[line.animate.align_to(self.rects[-1], DOWN) for line in self.lines],
             lag_ratio=0.1))
         
-        
         self.play(self.camera.frame.animate.move_to(Group(*self.lines)).set(width=Group(*self.lines).width * 1.5),
                   *[line.animate.set_color([BLUE,RED][i%2]) for i,line in enumerate(self.lines)],
                   VGroup(*self.rects).animate.set_opacity(0.1)
@@ -247,9 +239,9 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         self.wait()
         
         
-        #
-        ## Суммируем вклады
-        #
+        ######################
+        ## Суммируем вклады ##
+        ######################
         self.next_section('sum_contributions', skip_animations=SceneExtension.skip(True))
         
         # Показываем дробные значения вкладов
@@ -291,13 +283,12 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
                for brace,shift in zip(braces[1:10], shifts) ],
             lag_ratio=0.1
         ))
-        
         self.wait()
         
 
-        #
-        ## Суммируем вклады
-        #
+        ######################
+        ## Суммируем вклады ##
+        ######################
         self.next_section('harmonic_series', skip_animations=SceneExtension.skip(False))
         
         res_series = MathTex(r'\sum_{n=1}^{N}', r'\dfrac{1}{', r'n}').shift(2 * UP)
@@ -310,7 +301,9 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         res_hrm[-2].set_color(BLUE_B)
         res_hrm[-1].set_color(BLUE)
         res_hrm[0].set_opacity(0.3)
-        #res_hrm.submobjects[2].set_color(BLUE) # не можем достучаться до верхнего предела (непреодолённая проблема latex)
+        
+        # @note не можем достучаться до верхнего предела (непреодолённая проблема latex)
+        #res_hrm.submobjects[2].set_color(BLUE)
         
         self.play(
             LaggedStart(
@@ -343,7 +336,7 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         self.play(FadeOut(ptr_grp, shift=0.25*DOWN))
         self.wait()
         
-        # Выделить бесконечный предел
+        # Выделяем бесконечный предел
         self.play(ShowPassingFlashWithThinningStrokeWidth(
             SurroundingRectangle(res_hrm[-2:], buff=0.2).set_color(RED),
             time_width=0.4,
@@ -351,8 +344,8 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         ))
         self.wait()
 
-    
-    
+
+
     def get_rectangle(self):
         return Rectangle(height=self.height,
                          width=self.width,
@@ -411,7 +404,6 @@ class SolutionClassic(MovingCameraScene, SceneExtension):
         centers = np.array([x.get_center() for x in rects])
         cm_pos = np.mean(centers, axis=0)
         cm.move_to(cm_pos)
-        
         
         self.play(
             LaggedStart(

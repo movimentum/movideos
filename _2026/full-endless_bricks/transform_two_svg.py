@@ -9,7 +9,6 @@ from manim import *
 from movi_ext import *
 
 
-
 #%%
 SceneExtension.video_orientation = 'landscape'
 
@@ -35,16 +34,13 @@ class TransformTwoSvg(Scene, SceneExtension):
         
         svg_straight_copy = svg_straight.copy()
        
-        
         self.play(Create(svg_straight_copy, run_time=2))
-        
         
         self.play(
             ReplacementTransform(svg_straight_copy, svg_inclined),
             #rate_func=there_and_back,
             run_time=2
         )
-        
         self.wait()
         
         self.play(
@@ -52,11 +48,9 @@ class TransformTwoSvg(Scene, SceneExtension):
             #rate_func=there_and_back,
             run_time=2
         )
-        
         self.wait()
         
         self.play(Uncreate(svg_straight))
-        
         self.wait()
         
         

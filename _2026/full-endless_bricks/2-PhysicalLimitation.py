@@ -5,10 +5,9 @@
 import numpy as np
 
 from manim import *
+from manim_cad_drawing_utils import *
 
 from movi_ext import *
-
-from manim_cad_drawing_utils import *
 
 
 #%%
@@ -30,9 +29,9 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
     
     def construct(self):
 
-        #
-        ## Добавляем плотность
-        #
+        #########################
+        ## Добавляем плотность ##
+        #########################
         self.next_section('density', skip_animations=SceneExtension.skip(True))
         density_range = TexCyr(r'$\rho =~$', '$1\,650~$', '$\ldots~$', '$1\,850~$', r'$\text{кг/м}^3$')
         density = TexCyr(r'$\rho \approx~$', '$1\,750~$', r'$\text{кг/м}^3$')
@@ -49,10 +48,11 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
             FadeIn(density[1], shift=UP)
         )
         self.wait()
-        
-        #
-        ## Добавляем массу
-        #
+
+
+        #####################
+        ## Добавляем массу ##
+        #####################
         self.next_section('mass', skip_animations=SceneExtension.skip(True))
         
         eq = TexCyr(r'$\text{чистоплотность} = \dfrac{\text{чисто масса}}{\text{чисто объём}}$')
@@ -80,10 +80,11 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         
         self.play(TransformMatchingShapes(mass_second, mass))
         self.wait()
-        
-        #
-        ## Добавляем предел прочности на сжатие
-        #
+
+
+        ##########################################
+        ## Добавляем предел прочности на сжатие ##
+        ##########################################
         self.next_section('strengthlimit', skip_animations=SceneExtension.skip(True))
         
         sigma = TexCyr(r'$\sigma = 30$ МПа').next_to(mass, DOWN, buff=MED_LARGE_BUFF)
@@ -108,7 +109,6 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
             lag_ratio=0.1
         ))
         self.wait()
-        
  
         # Визуализируем нагрузку
         load = DistributedLoad(
@@ -118,7 +118,6 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         )
         load.reconstruct_sin_wave()
         
-
         def move_stack_and_load_randomly(ampl=w*0.7, phase=None, wait_time=1):
             """ Смещает кирпичи в стопке случайным образом и двигает нагрузку """
             for b in stack:
@@ -147,12 +146,11 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         load.save_state()               #
         brick.save_state()              #
         
-        
+        # Смещаем кирпичи по всякому вместе с нагрузкой
         move_stack_and_load_randomly()
         move_stack_and_load_randomly()
         move_stack_and_load_randomly(phase=PI/2)
 
-        
         # Делаем ровную стопку и равномерную нагрузку
         ds = 4 * UP
         n_above = 4
@@ -176,9 +174,9 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         self.wait()
         
         
-        #
-        ## Рассчитываем количество кирпичей
-        #
+        ######################################
+        ## Рассчитываем количество кирпичей ##
+        ######################################
         self.next_section('max_number_of_bricks', skip_animations=SceneExtension.skip(True))
         
         Group(
@@ -192,9 +190,9 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
             eq_N_bricks := TexCyr(r'$N \approx 26\,212$ штук')
         ).next_to(brick, DOWN).shift(2*DOWN)
         
+        # Ускорение свободного падения
         g_arrow = Arrow(UP, DOWN, color=RED_A).to_edge(LEFT, buff=LARGE_BUFF)
         g_arrow.set_stroke(opacity=[1,0])
-        #g_txt = TexCyr(r'$g \approx 9.8 \dfrac{\text{м}}{\text{с}^2}$')
         g_txt = TexCyr(r'$g \approx 9.81\, \text{м/с}^2$')
         g_txt.scale(0.7).next_to(g_arrow, DOWN)
         
@@ -208,15 +206,13 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         )
         self.wait()
         
+        # Рассчитываем количество кирпичей        
         self.play(TransformMatchingShapes(eq_sigma_1, eq_sigma_2), run_time=2)
         self.wait()
-        
         self.play(TransformMatchingShapes(eq_sigma_2, eq_sigma_3), run_time=2)
         self.wait()
-        
         self.play(TransformMatchingShapes(eq_sigma_3, eq_sigma_4), run_time=2)
         self.wait()
-        
         self.play(TransformMatchingShapes(eq_sigma_4, eq_N_bricks), run_time=2)
         self.wait()
         
@@ -247,9 +243,9 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         )
         self.wait()
         
-        #
-        ## Рассчитываем высоту и смещение
-        #
+        ####################################
+        ## Рассчитываем высоту и смещение ##
+        ####################################
         self.next_section('new_height_and_shift', skip_animations=SceneExtension.skip(True))
 
         txt_scale = 0.6
@@ -268,15 +264,12 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         
         self.play(FadeIn(txt_height, shift=DOWN), Write(eq_height_0))
         self.wait()
-        
         self.play(TransformMatchingShapes(eq_height_0, eq_height_1), run_time=2)
         self.wait()
-        
         self.play(TransformMatchingShapes(eq_height_1, eq_height_2), run_time=2)
         self.wait()
         
         grp_height = VGroup(eq_height_2, txt_height)
-
         
         # Смещение
         txt_shift = Text('Наибольшее смещение', color=BLUE_A)
@@ -287,22 +280,19 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
             eq_shift_1 := TexCyr(r'\[L = \dfrac{25\,\text{см}}{2}\cdot \sum_{i=1}^{26\,212}{\dfrac{1}{i}}\]'),
             eq_shift_2 := TexCyr(r'$L \approx 1.35$ м').set_color(GOLD)
         ).next_to(txt_shift, DOWN, buff=in_buff)
-        # eq_shift_0.next_to(txt_shift, DOWN, buff=in_buff)
         eq_shift_2.next_to(txt_shift, DOWN, buff=in_buff)
         
         self.play(FadeIn(txt_shift, shift=DOWN), Write(eq_shift_0))
         self.wait()
-        
         self.play(TransformMatchingShapes(eq_shift_0, eq_shift_1), run_time=2)
         self.wait()
-        
         self.play(TransformMatchingShapes(eq_shift_1, eq_shift_2), run_time=2)
         self.wait()
         
         
-        #
-        ## Давление на край кирпича
-        #
+        ##############################
+        ## Давление на край кирпича ##
+        ##############################
         self.next_section('pointed_pressure', skip_animations=SceneExtension.skip(True))
         
         eq_height_2.generate_target()
@@ -313,8 +303,6 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         
         grp_stack_brace = VGroup(stack_br, eq_N_bricks)
 
-        
-        
         # Убираем ненужные элементы, временно затеняем нужные
         self.play(
             FadeOut(txt_shift, shift=UP*0.5),
@@ -336,8 +324,7 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         )
         self.wait()
         
-
-            
+        # Смещаем кирпичи по гармоническому закону
         brick_shift = LEFT * 2    
         brick.generate_target()
         brick.target.shift(brick_shift)
@@ -371,7 +358,6 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         )
         self.wait()
         
-        
         # Линия центра тяжести
         cm_start = brick.get_corner(UR) + UP * 0.1
         cm_end = cm_start.copy()
@@ -385,7 +371,6 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         ))
         self.wait()
         
-        
         # Нагрузка на край 
         right = brick.get_right()[0]
         left = 0.13 * brick.get_left()[0] + 0.87 * right  # как подоходный налог забрали
@@ -397,9 +382,9 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         self.wait()
         
         
-        #
-        ## Пересчёт количества кирпичей
-        #
+        ##################################
+        ## Пересчёт количества кирпичей ##
+        ##################################
         self.next_section('reassessment', skip_animations=SceneExtension.skip(False))
         
         eq_N_old = MathTex(r'N ', r'= {\sigma\cdot', r'l \cdot w', r' \over mg}')
@@ -420,17 +405,15 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         )
         self.wait()
         
-  
+        # Укорачиваем стопку, удаляя несколько последних кирпичей
         stack_out = [stack.pop() for _ in range(3)]
         
         brick_shift = 2 * UP + 0.3 * LEFT
         brick.generate_target()
         load.generate_target()
         
-        
         brick.target.shift(brick_shift)
         load.target.shift(brick_shift)
-        
         
         self.play(
             *[FadeOut(s) for s in stack_out],
@@ -447,12 +430,11 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         )
         self.wait()
         
-        
+        # Обновляем надписи
         stack_brace_2 = Brace(VGroup(stack), RIGHT, color=BLUE).set_opacity(opacity=0.5)
         eq_N_bricks_2 = TexCyr(r'$N \approx~$', '$262$', ' штук', r'и').rotate(PI/2).next_to(stack_brace_2, RIGHT, buff=SMALL_BUFF)
         eq_N_bricks_2.set_color(BLUE_A)
         grp_stack_brace_2 = VGroup(stack_brace_2, eq_N_bricks_2[:-1])
-        
         
         brace_line = DashedLine(stack[0].get_corner(DR), stack_brace_2.get_corner(DL))
         brace_line.set_opacity(0.5).set_color(BLUE_A)
@@ -479,7 +461,7 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         self.play(FadeOut(eq_N_new[:2], scale=0.5))
         self.wait()
         
-        
+        # Обновляем результаты расчёта высоты и смещения
         eq_height_3 = TexCyr(r'$H \approx 17$ м').set_color(GOLD)
         eq_shift_3 = TexCyr(r'$L \approx 77$ см').set_color(GOLD)
         
@@ -505,7 +487,7 @@ class PhysicalLimitation(MovingCameraScene, SceneExtension):
         self.wait()
         
 
-#%%
+#%% Класс распределённой нагрузки в виде стрелок
 class DistributedLoad(VGroup):
     
     def __init__(self, low, left, right, *args, **kwargs):
@@ -579,8 +561,9 @@ class DistributedLoad(VGroup):
         self.ampl = 0
         self.lmin = lmin
         self.reconstruct_sin_wave()
-   
 
+
+# Тестирование класса распределённой нагрузки
 class TestDistributedLoadArrows(Scene, SceneExtension):
     def construct(self):
         

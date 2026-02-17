@@ -23,6 +23,7 @@ class Conclusion(BrickBreak):
         
         l, w, h    = self.dimensions  # длина, ширина, высота кирпича
         
+        # Запускаем вращение камеры
         self.set_camera_orientation(phi=60*DEGREES, theta=230*DEGREES, zoom=0.9)
         self.begin_ambient_camera_rotation(rate=0.015)
         
@@ -30,10 +31,8 @@ class Conclusion(BrickBreak):
         # Исходный кирпич
         brick = self.make_brick().shift(IN*2)
         
-        
         # Кирпичи сверху (n штук), сдвинутые случайным образом
         n = 5
-        
         stack = [
             brick.copy()
             .set_color(BLUE)
@@ -55,7 +54,6 @@ class Conclusion(BrickBreak):
         
         # Убираем нижний кирпич из стопки, и стопка падает, но отскакивает
         def remove_bottom_and_back(n, wait_before_recreate=1, success=False):
-            
             [s.save_state() for s in stack]
 
             dn = 1 if success else 0
@@ -94,10 +92,12 @@ class Conclusion(BrickBreak):
             return winners
 
         
+        # Вот здесь анимируем исключение кирпичей
         remove_bottom_and_back(1)
         remove_bottom_and_back(3)
         winners = remove_bottom_and_back(4, success=True)
         
+        # Выделяем пятый кирпич как первый выступивший за край нижнего кирпича
         winner_top_face = winners[0][1]
         upper_bot_face = stack[-1][0]
         
@@ -116,13 +116,13 @@ class Conclusion(BrickBreak):
         self.wait()
         
         
+        # Завершаем сцену
         self.play(LaggedStart(
             Uncreate(lines),
             *[FadeOut(s, shift=np.random.choice((-1,1))*RIGHT) for s in stack],
             lag_ratio=0.2            
         ))
         self.wait()
-        
         
         grp = VGroup(brick, *[winners])
         
@@ -136,7 +136,6 @@ class Conclusion(BrickBreak):
         self.wait()
         
         self.stop_ambient_camera_rotation()
-            
 
 
 #%% Тестовый рендер
