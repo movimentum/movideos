@@ -88,3 +88,22 @@ class SceneWithSectionRendering(Scene, SceneExtension):  # наследуем к
         self.next_section('first_part', skip_animations=SceneExtension.skip(True))
         # А эта часть будет
 ```
+
+## Кириллица в формулах
+
+Для использования кириллических символов в формулах удобно воспользоваться
+классом `TexCyr`
+
+```python
+
+from manim import Scene
+from movi_ext import TexCyr
+
+class TestScene(Scene):
+    def construct(self):
+        
+        eq = TexCyr(r'$a = 25$ см')
+        
+        self.add(eq)
+        self.wait()
+```
